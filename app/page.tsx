@@ -4,6 +4,7 @@ import { Users, Utensils } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import Layout from "@/components/layout"
 import { Comida, Empleado, Consumo } from "@/lib/types"
+import { fetchComida, fetchEmpleados, fetchConsumos } from "@/lib/backFunctions"
 import { use, useEffect, useState } from "react"
 import axios from "axios"
 
@@ -17,80 +18,39 @@ export default function Dashboard() {
 
 
   useEffect(() => { 
-
-    const fetchComida = async () => {
-      setLoadingComida(true)
-      try {
-        const response = await axios.get(
-          "https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/comidas"
-        )
-        console.log(response.data.length)
-        let comidaData = response.data.map((item: Comida) => ({
-          ID_Comida: item.ID_Comida,
-          Nombre: item.Nombre,
-          Precio: item.Precio,
-          Tipo: item.Tipo,
-        }))
-        setComida(comidaData)
-        setLoadingComida(false)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-        setLoadingComida(false)
-      }
+     fetchComida().then((data) => {
+      setComida(data)
+      setLoadingComida(false)
+    }).catch((error) => {
+      console.error("Error fetching comida:", error)
+      setLoadingComida(false)
     }
-    fetchComida()
+    )
   }, [])
 
   useEffect(() => { 
-
-    const fetchEmpleados = async () => {
-      setLoadingEmpleados(true)
-      try {
-        const response = await axios.get(
-          "https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleados"
-        )
-        console.log(response.data)
-        let empleadosData = response.data.map((item: Empleado) => ({
-          Id_Empleado: item.Id_Empleado,
-          Nombre: item.Nombre,
-          Departamento: item.Departamento,
-          Imagen: item.Imagen,
-        }))
-        setEmpleados(empleadosData)
-        setLoadingEmpleados(false)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-        setLoadingEmpleados(false)
-      }
+    fetchEmpleados().then((data) => {
+      setEmpleados(data)
+      setLoadingEmpleados(false)
     }
-    fetchEmpleados()
+    ).catch((error) => {  
+      console.error("Error fetching empleados:", error)
+      setLoadingEmpleados(false)
+    }
+    )
   }, [])
 
   useEffect(() => {
-  const fetchConsumos = async () => {
-    setLoadingConsumos(true)
-    try {
-      const response = await axios.get(
-        "https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/consumos"
-      )
-      console.log(response.data)
-      let consumosData = response.data.map((item: Consumo) => ({
-        Id_Consumo: item.Id_Consumo,
-        ID_Comida: item.ID_Comida,
-        ID_Empleado: item.ID_Empleado,
-        Fecha: item.Fecha,
-        Precio: item.Precio,
-      }))
-      console.log(consumosData)
-      setConsumos(consumosData)
-      setLoadingConsumos(false)
-    } catch (error) {
-      console.error("Error fetching data:", error)
+    fetchConsumos().then((data) => {
+      setConsumos(data)
       setLoadingConsumos(false)
     }
-  }
-  fetchConsumos()
-}, [])
+    ).catch((error) => {
+      console.error("Error fetching consumos:", error)
+      setLoadingConsumos(false)
+    }
+    )
+  }, [])
 
   return (
     <Layout title="Dashboard">

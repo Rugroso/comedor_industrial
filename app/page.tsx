@@ -4,17 +4,18 @@ import { Users, Utensils } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import Layout from "@/components/layout"
 import { Comida, Empleado, Consumo } from "@/lib/types"
+// Obviamente van a ver esto, por favor todas las funciones que usen, ponerlas dentro del archivo de backFunctions.ts POR FAVOR, asi evitamos el desorden y codigo sobreescrito
 import { fetchComida, fetchEmpleados, fetchConsumos } from "@/lib/backFunctions"
-import { use, useEffect, useState } from "react"
-import axios from "axios"
+import { useEffect, useState } from "react"
+
 
 export default function Dashboard() {
   const [loadingComida, setLoadingComida] = useState(true)
   const [loadingEmpleados, setLoadingEmpleados] = useState(true)
   const [loadingConsumos, setLoadingConsumos] = useState(true)
   const [comida, setComida] = useState<Comida[]>([])
-  const [empleados, setEmpleados] = useState<Comida[]>([])
-  const [consumos, setConsumos] = useState<Comida[]>([])
+  const [empleados, setEmpleados] = useState<Empleado[]>([])
+  const [consumos, setConsumos] = useState<Consumo[]>([])
 
 
   useEffect(() => { 

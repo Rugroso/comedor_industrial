@@ -24,7 +24,7 @@ export default function Layout({ children, title }: LayoutProps) {
       <header className="border-b border-[#cac4d0] bg-[#fef7ff] p-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="text-xl font-bold text-[#1d1b20]">
-            Comedor Industrial El Buen Rugroso
+            Comedor Industrial
             <br />
           </div>
           <div className="flex items-center">

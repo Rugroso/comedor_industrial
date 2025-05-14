@@ -64,7 +64,7 @@ export default function RegistroEmpleados() {
     
     try {
       let response;
-      
+      console.log("Editando empleado:", empleadoEditando)
       if (editMode && empleadoEditando) {
         response = await actualizarEmpleado(empleadoEditando, nombre, departamento, imagen);
         toast({

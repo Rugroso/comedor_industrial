@@ -135,25 +135,56 @@ export const eliminarEmpleado = async (id: string) => {
   }
 }
 
-export const actualizarEmpleado = async (id: string, nombre: string, departamento: string, imagen?: string) => {
+export const actualizarEmpleado = async (
+  id: string,
+  nombre: string,
+  departamento: string,
+  imagen?: string
+) => {
   try {
-    const empleadoActualizado = {
+    const empleadoActualizado: any = {
       "Nombre": nombre,
-      "Departamento": departamento
+      "Departamento": departamento,
+      "Imagen": imagen || "default.jpg"
     }
-    
-    if (imagen) {
-      empleadoActualizado["Imagen"] = imagen
-    }
-    
+
     const response = await axios.put(
       `https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleados/${id}`,
       empleadoActualizado
     )
     console.log("Empleado actualizado:", response.data)
     return response.data
-  } catch (error) {
-    console.error("Error actualizando empleado:", error)
+  } catch (error: any) {
+    if (error.response) {
+      // El servidor respondió con un código de estado fuera del rango 2xx
+      console.error("Error de respuesta del servidor:")
+      console.error("Status:", error.response.status)
+      console.error("Data:", error.response.data)
+      console.error("Headers:", error.response.headers)
+    } else if (error.request) {
+      // La solicitud fue hecha pero no hubo respuesta
+      console.error("No se recibió respuesta del servidor:")
+      console.error("Request:", error.request)
+    } else {
+      // Ocurrió un error al configurar la solicitud
+      console.error("Error al configurar la solicitud:", error.message)
+    }
+    console.error("Stack trace:", error.stack)
     throw error
   }
 }
+
+
+//Consumo Empleados
+export const fetchConsumosEmpleados = async () => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/empleado/consumos`
+    );
+    console.log("Datos de consumos por empleado:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching consumos por empleado:", error);
+    throw error;
+  }
+};

@@ -12,7 +12,6 @@ import { useToast } from "@/components/ui/use-toast"
 
 export default function RegistroEmpleados() {
   const [nombre, setNombre] = useState("")
-  const [numeroEmpleado, setNumeroEmpleado] = useState("")
   const [departamento, setDepartamento] = useState("")
   const [imagen, setImagen] = useState("default.jpg") 
 
@@ -64,7 +63,6 @@ export default function RegistroEmpleados() {
     
     try {
       let response;
-      console.log("Editando empleado:", empleadoEditando)
       if (editMode && empleadoEditando) {
         response = await actualizarEmpleado(empleadoEditando, nombre, departamento, imagen);
         toast({
@@ -74,7 +72,7 @@ export default function RegistroEmpleados() {
         setEditMode(false);
         setEmpleadoEditando(null);
       } else {
-        response = await registrarEmpleado(nombre, departamento, numeroEmpleado, imagen);
+        response = await registrarEmpleado(nombre, departamento, imagen);
         toast({
           title: "Éxito",
           description: "Empleado registrado correctamente",
@@ -132,7 +130,6 @@ export default function RegistroEmpleados() {
 
   const resetForm = () => {
     setNombre("")
-    setNumeroEmpleado("")
     setDepartamento("")
     setImagen("default.jpg")
   }
@@ -140,7 +137,6 @@ export default function RegistroEmpleados() {
   //EDITAR UN EMPLEADO
   const handleEditar = (empleado: Empleado) => {
     setNombre(empleado.Nombre);
-    setNumeroEmpleado(empleado.Id_Empleado);
     setDepartamento(empleado.Departamento);
     setImagen(empleado.Imagen || "default.jpg");
     setEditMode(true);
@@ -183,20 +179,6 @@ export default function RegistroEmpleados() {
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="employeeNumber" className="block text-[#49454f] mb-2">
-                Numero de empleado
-              </label>
-              <Input 
-                id="employeeNumber" 
-                className="border-[#cac4d0] bg-white" 
-                value={numeroEmpleado}
-                onChange={(e) => setNumeroEmpleado(e.target.value)}
-                required
-                disabled={editMode} 
               />
             </div>
 

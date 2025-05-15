@@ -58,60 +58,37 @@ export const fetchConsumos = async () => {
   }
 }
 
-export const registrarEmpleado = async (nombre: string, departamento: string, numeroEmpleado: string, imagen: string = "default.jpg") => {
+//REGISTRAR EMPLEADO
+export const registrarEmpleado = async (nombre: string, departamento: string, imagen: string) => {
   try {
-    console.log("Iniciando registro de empleado:", { nombre, departamento, imagen })
-    
-    const nuevoEmpleado = {
-      "Nombre": nombre,
-      "Departamento": departamento,
-      "Imagen": imagen
-    }
-    
-    console.log("Enviando datos a la API:", nuevoEmpleado)
-    
     const response = await axios.post(
       `${API_BASE_URL}/empleados`,
-      nuevoEmpleado,
       {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+        Nombre: nombre,
+        Departamento: departamento,
+        Imagen: imagen
       }
-    )
-    
-    console.log("Respuesta completa de la API:", response)
-    console.log("Empleado registrado:", response.data)
-    return response.data
+    );
+    console.log("Empleado registrado:", response.data);
+    return response.data;
   } catch (error: any) {
-    console.error("Error completo:", error)
-    
+    console.error("Error registrando empleado:", error);
     if (error.response) {
-      console.error("Error del servidor:", {
-        status: error.response.status,
-        data: error.response.data
-      })
       throw {
         message: `Error del servidor: ${error.response.status} - ${JSON.stringify(error.response.data)}`,
         originalError: error
-      }
-    } else if (error.request) {
-      console.error("No se recibió respuesta del servidor")
-      throw {
-        message: "No se recibió respuesta del servidor. Verifica tu conexión a Internet.",
-        originalError: error
-      }
+      };
     } else {
-      console.error("Error al configurar la solicitud:", error.message)
       throw {
-        message: `Error al configurar la solicitud: ${error.message}`,
+        message: "Error al registrar empleado",
         originalError: error
-      }
+      };
     }
   }
 }
 
+
+//ELIMINAR EMPLEADO
 export const eliminarEmpleado = async (id: string) => {
   try {
     const response = await axios.delete(
@@ -135,6 +112,7 @@ export const eliminarEmpleado = async (id: string) => {
   }
 }
 
+//ACTUALIZAR EMPLEADO
 export const actualizarEmpleado = async (
   id: string,
   nombre: string,
@@ -175,7 +153,7 @@ export const actualizarEmpleado = async (
 }
 
 
-//Consumo Empleados
+//CONSUMO EMPLEADOS
 export const fetchConsumosEmpleados = async () => {
   try {
     const response = await axios.get(

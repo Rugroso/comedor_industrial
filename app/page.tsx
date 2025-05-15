@@ -4,7 +4,6 @@ import { Users, Utensils } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import Layout from "@/components/layout"
 import { Comida, Empleado, Consumo } from "@/lib/types"
-// Importa el componente de gráfico
 import GraficoConsumosPorDepartamento from "@/components/ConsumoDepartamento"
 import { fetchComida, fetchEmpleados, fetchConsumos } from "@/lib/backFunctions"
 import { useEffect, useState } from "react"
@@ -56,7 +55,6 @@ export default function Dashboard() {
     )
   }, [])
 
-  // Calcular el total de comidas por tipo
   const getTotalComidasPorTipo = (tipo) => {
     if (loadingComida || !comida || comida.length === 0) return 0;
     return comida.filter((item) => item.Tipo === tipo).length;
@@ -148,12 +146,9 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {consumos.slice(0, 5).map((consumo, index) => {
-                  // Buscar el empleado correspondiente
                   const empleado = empleados.find(e => e.Id_Empleado === consumo.ID_Empleado);
-                  // Buscar la comida correspondiente
                   const comidaItem = comida.find(c => c.ID_Comida === consumo.ID_Comida);
                   
-                  // Formatear la fecha
                   const fecha = new Date(consumo.Fecha);
                   const hora = fecha.toLocaleTimeString('es-MX', { 
                     hour: '2-digit', 

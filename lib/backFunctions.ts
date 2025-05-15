@@ -166,3 +166,121 @@ export const fetchConsumosEmpleados = async () => {
     throw error;
   }
 };
+
+// Función para obtener las comidas disponibles según la hora
+export const obtenerComidasPorHora = async () => {
+  try {
+    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/comidas/hora', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al obtener comidas por hora');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+};
+
+// Función para buscar empleado por ID
+export const buscarEmpleado = async (empleadoId) => {
+  try {
+    const response = await fetch(`https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleado/consumos?id=${empleadoId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Empleado no encontrado');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
+};
+
+// Función para registrar un consumo
+export const registrarConsumo = async (idEmpleado, idComida) => {
+  try {
+    const fecha = new Date().toISOString();
+    
+    const consumoData = {
+      Id_Empleado: idEmpleado,
+      Id_Comida: idComida,
+      Fecha: fecha
+    };
+    
+    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/consumos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(consumoData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al registrar consumo');
+    }
+    
+    const data = await response.json();
+    return {
+      success: true,
+      data
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+};
+
+// Función para obtener consumos registrados
+export const obtenerConsumosRegistrados = async () => {
+  try {
+    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleado/consumos', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al obtener consumos');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+};
+
+// Función para determinar el tipo de comida según la hora actual
+export const determinarTipoComida = () => {
+  const hora = new Date().getHours();
+  
+  if (hora >= 6 && hora < 11) {
+    return "desayuno";
+  } else if (hora >= 12 && hora < 16) {
+    return "comida";
+  } else if (hora >= 18 && hora < 21) {
+    return "cena";
+  } else {
+    return "otro";
+  }
+};

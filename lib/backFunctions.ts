@@ -149,7 +149,7 @@ export const actualizarEmpleado = async (
     }
 
     const response = await axios.put(
-      `https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleados/${id}`,
+      `${API_BASE_URL}/empleados/${id}`,
       empleadoActualizado
     )
     console.log("Empleado actualizado:", response.data)

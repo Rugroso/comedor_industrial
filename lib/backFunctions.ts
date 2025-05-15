@@ -170,7 +170,7 @@ export const fetchConsumosEmpleados = async () => {
 // Función para obtener las comidas disponibles según la hora
 export const obtenerComidasPorHora = async () => {
   try {
-    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/comidas/hora', {
+    const response = await fetch(`${API_BASE_URL}/comidas/hora`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -192,7 +192,7 @@ export const obtenerComidasPorHora = async () => {
 // Función para buscar empleado por ID
 export const buscarEmpleado = async (empleadoId) => {
   try {
-    const response = await fetch(`https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleado/consumos?id=${empleadoId}`, {
+    const response = await fetch(`${API_BASE_URL}empleado/consumos?id=${empleadoId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ export const registrarConsumo = async (idEmpleado, idComida) => {
       Fecha: fecha
     };
     
-    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/consumos', {
+    const response = await fetch(`${API_BASE_URL}/consumos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -251,7 +251,7 @@ export const registrarConsumo = async (idEmpleado, idComida) => {
 // Función para obtener consumos registrados
 export const obtenerConsumosRegistrados = async () => {
   try {
-    const response = await fetch('https://h866jjo9h8.execute-api.us-east-2.amazonaws.com/api/empleado/consumos', {
+    const response = await fetch(`${API_BASE_URL}/empleado/consumos`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

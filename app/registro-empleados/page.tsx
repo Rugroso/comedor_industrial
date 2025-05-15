@@ -140,7 +140,7 @@ export default function RegistroEmpleados() {
     setDepartamento(empleado.Departamento);
     setImagen(empleado.Imagen || "default.jpg");
     setEditMode(true);
-    setEmpleadoEditando(empleado.Id_Empleado);
+    setEmpleadoEditando(empleado.Id_Empleado.toString());
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -279,7 +279,7 @@ export default function RegistroEmpleados() {
                               Editar
                             </button>
                             <button 
-                              onClick={() => handleEliminar(empleado.Id_Empleado)}
+                              onClick={() => handleEliminar(empleado.Id_Empleado.toString())}
                               className="block text-red-500 hover:underline"
                             >
                               Eliminar

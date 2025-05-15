@@ -44,9 +44,7 @@ export default function RegistroConsumo() {
         const comidasData = await obtenerComidasPorHora();
         if (comidasData && Array.isArray(comidasData)) {
           // Filtrar por tipo de comida actual si es necesario
-          const comidasFiltradas = comidasData.filter(comida => 
-            comida.TipoComida.toLowerCase() === tipoComida.toLowerCase()
-          );
+          const comidasFiltradas = comidasData;
           setComidas(comidasFiltradas.length > 0 ? comidasFiltradas : comidasData);
         }
       } catch (error) {
@@ -163,7 +161,7 @@ export default function RegistroConsumo() {
                   {comidas.length > 0 ? (
                     comidas.map((comida) => (
                       <SelectItem key={comida.Id_Comida} value={String(comida.Id_Comida)}>
-                        {comida.NombreComida}
+                        {comida.Nombre}
                       </SelectItem>
                     ))
                   ) : (

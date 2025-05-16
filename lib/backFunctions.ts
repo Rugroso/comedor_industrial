@@ -1,5 +1,5 @@
 import axios from "axios"
-import { Comida, Consumo, Empleado } from "./types"
+import { Comida, Consumo, Empleado, ConsumoConDetalles } from "./types"
 
 const API_BASE_URL = "/api";
 
@@ -283,4 +283,96 @@ export const determinarTipoComida = () => {
   } else {
     return "otro";
   }
+};
+
+// NUEVAS FUNCIONES PARA MEJORAR LA VISUALIZACIÓN DE CONSUMOS RECIENTES
+
+// Función para obtener consumos con detalles completos (empleado y comida)
+export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> => {
+  try {
+    // Obtenemos datos de las tres entidades
+    const [consumosData, empleadosData, comidasData] = await Promise.all([
+      fetchConsumos(),
+      fetchEmpleados(),
+      fetchComida()
+    ]);
+
+    // Si alguna llamada falló, devolvemos un array vacío
+    if (!consumosData || !empleadosData || !comidasData) {
+      return [];
+    }
+
+    // Combinamos la información
+    const consumosDetallados = consumosData.map((consumo: Consumo) => {
+      const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
+      const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
+      
+      return {
+        ...consumo,
+        nombreEmpleado: empleado?.Nombre || 'Empleado desconocido',
+        departamentoEmpleado: empleado?.Departamento || 'Departamento desconocido',
+        nombreComida: comida?.Nombre || 'Comida desconocida',
+        tipoComida: comida?.Tipo || 'Tipo desconocido'
+      };
+    });
+
+    // Ordenamos por fecha descendente (los más recientes primero)
+    return consumosDetallados.sort((a, b) => 
+      new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
+    );
+  } catch (error) {
+    console.error("Error obteniendo consumos detallados:", error);
+    return [];
+  }
+};
+
+// Función para obtener consumos con detalles desde el endpoint empleado/consumos
+export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]> => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/empleado/consumos`
+    );
+    
+    console.log("Respuesta del servidor (empleado/consumos):", response.data);
+    
+    // Adaptamos la respuesta a nuestro tipo ConsumoConDetalles
+    // La estructura puede variar dependiendo de cómo esté configurada la API
+    const consumosDetallados = response.data.map(item => ({
+      Id_Consumo: item.Id_Consumo || item.ID_Consumo,
+      ID_Comida: item.ID_Comida,
+      ID_Empleado: item.ID_Empleado,
+      Fecha: item.Fecha,
+      Precio: item.Precio || "0",
+      nombreEmpleado: item.Nombre_Empleado || item.NombreEmpleado || item.Nombre,
+      departamentoEmpleado: item.Departamento,
+      nombreComida: item.Nombre_Comida || item.NombreComida,
+      tipoComida: item.Tipo_Comida || item.TipoComida || item.Tipo
+    }));
+    
+    // Solo para depuración
+    console.log("Consumos detallados después del mapeo:", consumosDetallados[0]);
+    
+    // Ordenamos por fecha descendente
+    return consumosDetallados.sort((a, b) => 
+      new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
+    );
+  } catch (error) {
+    console.error("Error obteniendo consumos con empleados:", error);
+    return [];
+  }
+};
+
+// Función auxiliar para formatear fechas
+export const formatearFecha = (fechaISO: string): string => {
+  // Crear la fecha a partir del string ISO
+  const fecha = new Date(fechaISO);
+  
+  // Sumar 7 horas para ajustar la diferencia de zona horaria
+  fecha.setHours(fecha.getHours() + 7);
+  
+  // Formatear la hora ajustada
+  return fecha.toLocaleTimeString('es-MX', { 
+    hour: '2-digit', 
+    minute: '2-digit'
+  });
 };

@@ -134,17 +134,14 @@ export const actualizarEmpleado = async (
     return response.data
   } catch (error: any) {
     if (error.response) {
-      // El servidor respondió con un código de estado fuera del rango 2xx
       console.error("Error de respuesta del servidor:")
       console.error("Status:", error.response.status)
       console.error("Data:", error.response.data)
       console.error("Headers:", error.response.headers)
     } else if (error.request) {
-      // La solicitud fue hecha pero no hubo respuesta
       console.error("No se recibió respuesta del servidor:")
       console.error("Request:", error.request)
     } else {
-      // Ocurrió un error al configurar la solicitud
       console.error("Error al configurar la solicitud:", error.message)
     }
     console.error("Stack trace:", error.stack)
@@ -285,24 +282,19 @@ export const determinarTipoComida = () => {
   }
 };
 
-// NUEVAS FUNCIONES PARA MEJORAR LA VISUALIZACIÓN DE CONSUMOS RECIENTES
-
 // Función para obtener consumos con detalles completos (empleado y comida)
 export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> => {
   try {
-    // Obtenemos datos de las tres entidades
     const [consumosData, empleadosData, comidasData] = await Promise.all([
       fetchConsumos(),
       fetchEmpleados(),
       fetchComida()
     ]);
 
-    // Si alguna llamada falló, devolvemos un array vacío
     if (!consumosData || !empleadosData || !comidasData) {
       return [];
     }
 
-    // Combinamos la información
     const consumosDetallados = consumosData.map((consumo: Consumo) => {
       const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
       const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
@@ -316,7 +308,6 @@ export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> =
       };
     });
 
-    // Ordenamos por fecha descendente (los más recientes primero)
     return consumosDetallados.sort((a, b) => 
       new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
@@ -335,8 +326,6 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
     
     console.log("Respuesta del servidor (empleado/consumos):", response.data);
     
-    // Adaptamos la respuesta a nuestro tipo ConsumoConDetalles
-    // La estructura puede variar dependiendo de cómo esté configurada la API
     const consumosDetallados = response.data.map(item => ({
       Id_Consumo: item.Id_Consumo || item.ID_Consumo,
       ID_Comida: item.ID_Comida,
@@ -349,10 +338,8 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
       tipoComida: item.Tipo_Comida || item.TipoComida || item.Tipo
     }));
     
-    // Solo para depuración
     console.log("Consumos detallados después del mapeo:", consumosDetallados[0]);
     
-    // Ordenamos por fecha descendente
     return consumosDetallados.sort((a, b) => 
       new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
@@ -364,13 +351,10 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
 
 // Función auxiliar para formatear fechas
 export const formatearFecha = (fechaISO: string): string => {
-  // Crear la fecha a partir del string ISO
   const fecha = new Date(fechaISO);
   
-  // Sumar 7 horas para ajustar la diferencia de zona horaria
   fecha.setHours(fecha.getHours() + 7);
   
-  // Formatear la hora ajustada
   return fecha.toLocaleTimeString('es-MX', { 
     hour: '2-digit', 
     minute: '2-digit'

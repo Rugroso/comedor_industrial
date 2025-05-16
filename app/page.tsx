@@ -57,7 +57,6 @@ export default function Dashboard() {
     })
   }, [])
 
-  // Nuevo efecto para cargar consumos detallados
   useEffect(() => {
     setLoadingConsumos(true)
     fetchConsumosConEmpleados()

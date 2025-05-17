@@ -284,6 +284,7 @@ export default function RegistroEmpleados() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-[#f3edf7] text-left">
+                  <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Foto</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Nombre</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium">No. Empleado</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium">Departamento</th>
@@ -294,6 +295,16 @@ export default function RegistroEmpleados() {
                   {empleadosAMostrar.length > 0 ? (
                     empleadosAMostrar.map((empleado, index) => (
                       <tr key={empleado.Id_Empleado || index} className={index < empleadosAMostrar.length - 1 ? "border-b border-[#cac4d0]" : ""}>
+                        <td className="px-4 py-3">
+                          <img 
+                            src={empleado.Imagen} 
+                            alt={`Foto de ${empleado.Nombre}`} 
+                            className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-user.png";
+                            }}
+                          />
+                        </td>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Nombre}</td>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Id_Empleado}</td>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Departamento}</td>

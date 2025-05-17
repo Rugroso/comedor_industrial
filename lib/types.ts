@@ -44,7 +44,6 @@ export type Comida = {
 type ConteoComidasPorTipo = { 
   desayuno: number; // Desayuno
   comida: number; // Comida
-  cena: number; // Cena
   otro: number; // Tipo de comida no especificado
   total: number; // Total de comidas
 }

@@ -15,11 +15,9 @@ import {
 } from "@/lib/backFunctions"
 import { useEffect, useState } from "react"
 
-// Tipo para los contadores de comidas por tipo
 type ConteoComidasPorTipo = {
   desayuno: number;
   comida: number;
-  cena: number;
   otro: number;
   total: number;
 }
@@ -43,7 +41,6 @@ export default function Dashboard() {
   const [totalEmpleados, setTotalEmpleados] = useState(0)
   const [error, setError] = useState("")
 
-  // Fetch comidas
   useEffect(() => { 
      fetchComida().then((data) => {
       setComida(data)
@@ -54,7 +51,6 @@ export default function Dashboard() {
     })
   }, [])
 
-  // Fetch empleados
   useEffect(() => { 
     fetchEmpleados().then((data) => {
       setEmpleados(data)
@@ -66,7 +62,6 @@ export default function Dashboard() {
     })
   }, [])
 
-  // Fetch consumos básicos
   useEffect(() => {
     fetchConsumos().then((data) => {
       setConsumos(data)
@@ -77,7 +72,6 @@ export default function Dashboard() {
     })
   }, [])
 
-  // Fetch consumos detallados
   useEffect(() => {
     setLoadingConsumos(true)
     fetchConsumosConEmpleados()
@@ -92,7 +86,6 @@ export default function Dashboard() {
       })
   }, [])
 
-  // NUEVO: Fetch conteo de comidas por tipo para hoy
   useEffect(() => {
     setLoadingConteos(true)
     fetchConsumosHoyPorTipo()
@@ -105,7 +98,6 @@ export default function Dashboard() {
         setLoadingConteos(false)
       })
 
-    // Refrescar los datos cada 5 minutos
     const interval = setInterval(() => {
       fetchConsumosHoyPorTipo()
         .then((data) => {
@@ -114,12 +106,11 @@ export default function Dashboard() {
         .catch((error) => {
           console.error("Error actualizando conteo de comidas por tipo:", error)
         })
-    }, 300000) // 5 minutos en milisegundos
+    }, 300000)
 
     return () => clearInterval(interval)
   }, [])
 
-  // Método anterior (por si acaso necesitamos fallback)
   const getTotalComidasPorTipo = (tipo) => {
     if (loadingComida || !comida || comida.length === 0) return 0;
     return comida.filter((item) => item.Tipo === tipo).length;

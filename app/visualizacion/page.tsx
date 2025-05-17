@@ -14,27 +14,6 @@ import {
 import { Empleado, Comida } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 
-// Este tipo lo puedes mover a types.ts si prefieres
-type ConsumoDia = {
-  ID_Consumo?: number;
-  Id_Consumo?: number;
-  ID_Empleado?: number;
-  Id_Empleado?: number;
-  ID_Comida?: number;
-  Id_Comida?: number;
-  Fecha?: string;
-  fecha?: string;
-  Tipo?: string;
-  tipo?: string;
-  Departamento?: string;
-  departamento?: string;
-  Nombre?: string;
-  nombre?: string;
-  Precio?: number | string;
-  precio?: number | string;
-  [key: string]: any;
-};
-
 export default function Visualizacion() {
   const [currentDate, setCurrentDate] = useState("")
   const [consumosDelDia, setConsumosDelDia] = useState<ConsumoDia[]>([])
@@ -43,7 +22,7 @@ export default function Visualizacion() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5  // Reducido a 5 elementos por página
+  const itemsPerPage = 5 // Cambiado a 5 elementos por página
   
   const { toast } = useToast()
 
@@ -74,6 +53,8 @@ export default function Visualizacion() {
         fetchComida()
       ])
       
+      console.log("Datos obtenidos del endpoint /consumos/dia:", consumosDiaData);
+      
       setConsumosDelDia(consumosDiaData || [])
       setEmpleados(empleadosData || [])
       setComidas(comidasData || [])
@@ -91,31 +72,35 @@ export default function Visualizacion() {
     }
   }
   
-  // Funciones para obtener información relacionada
+  // Función para obtener el nombre del empleado
   const getNombreEmpleado = (id?: number) => {
     if (!id) return 'Desconocido';
     const empleado = empleados.find(e => e.Id_Empleado === id);
     return empleado?.Nombre || 'Desconocido';
   }
   
+  // Función para obtener el departamento del empleado
   const getDepartamentoEmpleado = (id?: number) => {
     if (!id) return '-';
     const empleado = empleados.find(e => e.Id_Empleado === id);
     return empleado?.Departamento || '-';
   }
   
+  // Función para obtener el nombre de la comida
   const getNombreComida = (id?: number) => {
     if (!id) return 'Desconocido';
     const comida = comidas.find(c => c.ID_Comida === id);
     return comida?.Nombre || 'Desconocido';
   }
   
+  // Función para obtener el tipo de comida
   const getTipoComida = (id?: number) => {
     if (!id) return 'Desconocido';
     const comida = comidas.find(c => c.ID_Comida === id);
     return comida?.Tipo || 'Desconocido';
   }
   
+  // Función para extraer directamente del objeto de consumo si ya contiene la info
   const obtenerInfoComida = (consumo: ConsumoDia) => {
     // Intentamos obtener el ID de comida
     const idComida = consumo.ID_Comida || consumo.Id_Comida;
@@ -178,11 +163,9 @@ export default function Visualizacion() {
       <Card className="rounded-xl border-[#cac4d0] p-6">
         <div className="mb-6">
           <h2 className="text-xl font-medium text-[#1d1b20] mb-4">Consumos del día</h2>
-          <div className="flex items-center">
-            <div className="flex items-center gap-2 text-[#49454f]">
-              <Calendar className="h-5 w-5" />
-              <span>Fecha: {currentDate}</span>
-            </div>
+          <div className="flex items-center gap-2 text-[#49454f]">
+            <Calendar className="h-5 w-5" />
+            <span>Fecha: {currentDate}</span>
           </div>
         </div>
         
@@ -248,7 +231,7 @@ export default function Visualizacion() {
             </div>
             
             {totalPages > 1 && (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex justify-center items-center">
                 <div className="flex gap-1">
                   <Button 
                     variant="outline" 

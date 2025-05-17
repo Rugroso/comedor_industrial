@@ -248,8 +248,8 @@ export const registrarConsumo = async (idEmpleado, idComida) => {
   }
 };
 
-// Función para obtener los consumos del día
-export const fetchConsumosDia = async () => {
+// Función para obtener consumos por día
+export const fetchConsumosPorDia = async () => {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/consumos/dia`
@@ -257,10 +257,13 @@ export const fetchConsumosDia = async () => {
     console.log("Datos de consumos por día:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error obteniendo consumos del día:", error);
+    console.error("Error obteniendo consumos por día:", error);
     throw error;
   }
 };
+
+// Función para obtener los consumos del día (alias para mantener compatibilidad)
+export const fetchConsumosDia = fetchConsumosPorDia;
 
 // Función para obtener el conteo de comidas por tipo para el día actual
 export const fetchConsumosHoyPorTipo = async () => {
@@ -496,6 +499,7 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
   }
 };
 
+// Función auxiliar para formatear fechas
 export const formatearFecha = (fechaISO: string): string => {
   // Crear la fecha a partir del string ISO
   const fecha = new Date(fechaISO);

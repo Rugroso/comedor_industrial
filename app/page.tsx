@@ -34,7 +34,6 @@ export default function Dashboard() {
   const [conteosPorTipo, setConteosPorTipo] = useState<ConteoComidasPorTipo>({
     desayuno: 0,
     comida: 0,
-    cena: 0,
     otro: 0,
     total: 0
   })

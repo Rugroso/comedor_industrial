@@ -49,7 +49,7 @@ export type ConteoComidasPorTipo = {
 }
 
 export type ConsumoDia = {
-  ID_Consumo?: number; // ID del consumo
+  ID_Consumo?: number; // ID del consumo|
   Id_Consumo?: number; // ID del consumo
   ID_Empleado?: number; // ID del empleado
   Id_Empleado?: number; // ID del empleado 
@@ -66,5 +66,61 @@ export type ConsumoDia = {
   Precio?: number | string; // Precio de la comida
   precio?: number | string; // Precio de la comida
   [key: string]: any; // Propiedad adicional
+};
+
+// Types para los reportes
+export type ReporteDetallado = {
+  fecha: string;  // fecha del consumo
+  consumos: { 
+    fecha: string;  // fecha del consumo
+    hora: string; // hora del consumo
+    empleado: string; // nombre del empleado
+    departamento: string; // nombre del departamento
+    comida: string; // nombre de la comida
+    tipo: string; // desayuno o comida
+    precio: number; // precio de la comida
+  }[];
+  totales: {
+    desayunos: number; // cantidad de desayunos
+    comidas: number;  // cantidad de comidas
+    otros: number;  // cantidad de otros tipos de comida
+    total: number;      // total de comidas
+    importe: number; // total monetario de comidas      
+  };
+};
+
+export type ReporteEjecutivo = {
+  mes: string;  // mes del reporte
+  departamentos: {
+    nombre: string; // nombre del departamento
+    consumos: number; // cantidad de consumos
+    importe: number;  // total monetario de consumos
+  }[];
+  totales: {
+    consumos: number; // cantidad total de consumos
+    importe: number;  // total monetario de consumos
+  };
+  porTipo: {
+    desayunos: number;  // cantidad de desayunos
+    comidas: number;  // cantidad de comidas
+    cenas: number;  // cantidad de cenas
+    otros: number;  // cantidad de otros tipos de comida
+  };
+};
+
+export type ReporteDia = {
+  fecha: string;  // fecha del reporte
+  departamentos: {
+    nombre: string; // nombre del departamento
+    consumos: number; // cantidad de consumos
+    importe: number;  // total monetario de consumos
+  }[];
+  totales: {
+    desayunos: number;  // cantidad de desayunos    
+    comidas: number;  // cantidad de comidas
+    cenas: number;  // cantidad de cenas
+    total: number;  // cantidad total de comidas 
+    importe: number;  // total monetario de consumos 
+  };
 };
  

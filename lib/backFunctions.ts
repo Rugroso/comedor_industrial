@@ -66,7 +66,7 @@ export const registrarEmpleado = async (nombre: string, departamento: string, im
       {
         Nombre: nombre,
         Departamento: departamento,
-        imagenBase64: imagen,
+        Imagen: imagen
       }
     );
     console.log("Empleado registrado:", response.data);
@@ -264,6 +264,112 @@ export const fetchConsumosPorDia = async () => {
 
 // Función para obtener los consumos del día (alias para mantener compatibilidad)
 export const fetchConsumosDia = fetchConsumosPorDia;
+
+// Tipos para los reportes
+export type ReporteDetallado = {
+  fecha: string;
+  consumos: {
+    fecha: string;
+    hora: string;
+    empleado: string;
+    departamento: string;
+    comida: string;
+    tipo: string;
+    precio: number;
+  }[];
+  totales: {
+    desayunos: number;
+    comidas: number;
+    cenas: number;
+    otros: number;
+    total: number;
+    importe: number;
+  };
+};
+
+export type ReporteEjecutivo = {
+  mes: string;
+  departamentos: {
+    nombre: string;
+    consumos: number;
+    importe: number;
+  }[];
+  totales: {
+    consumos: number;
+    importe: number;
+  };
+  porTipo: {
+    desayunos: number;
+    comidas: number;
+    cenas: number;
+    otros: number;
+  };
+};
+
+export type ReporteDia = {
+  fecha: string;
+  departamentos: {
+    nombre: string;
+    consumos: number;
+    importe: number;
+  }[];
+  totales: {
+    desayunos: number;
+    comidas: number;
+    cenas: number;
+    total: number;
+    importe: number;
+  };
+};
+
+export type ReporteHistorico = {
+  id: string;
+  fecha: string;
+  tipo: 'detallado' | 'ejecutivo' | 'dia';
+  url: string;
+};
+
+// Función para obtener reporte detallado por fecha
+export const fetchReporteDetallado = async (fecha: string) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/reportes/detallado?fecha=${fecha}`
+    );
+    console.log("Datos de reporte detallado:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo reporte detallado:", error);
+    throw error;
+  }
+};
+
+// Función para obtener reporte ejecutivo mensual
+export const fetchReporteEjecutivo = async (mes: string) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/reportes/ejecutivo?mes=${mes}`
+    );
+    console.log("Datos de reporte ejecutivo:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo reporte ejecutivo:", error);
+    throw error;
+  }
+};
+
+// Función para obtener reporte del día
+export const fetchReporteDia = async () => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/reportes/dia`
+    );
+    console.log("Datos de reporte del día:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo reporte del día:", error);
+    throw error;
+  }
+};
 
 // Función para obtener el conteo de comidas por tipo para el día actual
 export const fetchConsumosHoyPorTipo = async () => {

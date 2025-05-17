@@ -47,4 +47,24 @@ type ConteoComidasPorTipo = {
   otro: number; // Tipo de comida no especificado
   total: number; // Total de comidas
 }
+
+type ConsumoDia = {
+  ID_Consumo?: number; // ID del consumo
+  Id_Consumo?: number; // ID del consumo
+  ID_Empleado?: number; // ID del empleado
+  Id_Empleado?: number; // ID del empleado 
+  ID_Comida?: number; // ID de la comida
+  Id_Comida?: number; // ID de la comida
+  Fecha?: string; // Fecha del consumo
+  fecha?: string; // Fecha del consumo
+  Tipo?: string; // Tipo de comida (desayuno, comida)
+  tipo?: string; // Tipo de comida (desayuno, comida)
+  Departamento?: string; // Nombre del departamento
+  departamento?: string; // Nombre del departamento
+  Nombre?: string; // Nombre del empleado
+  nombre?: string; // Nombre del empleado 
+  Precio?: number | string; // Precio de la comida
+  precio?: number | string; // Precio de la comida
+  [key: string]: any; // Propiedad adicional
+};
  

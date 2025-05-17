@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 export default function RegistroEmpleados() {
   const [nombre, setNombre] = useState("")
   const [departamento, setDepartamento] = useState("")
-  const [imagen, setImagen] = useState("default.jpg") 
+  const [imagen, setImagen] = useState("") 
 
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +23,12 @@ export default function RegistroEmpleados() {
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mostrandoTodos, setMostrandoTodos] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+const triggerFileInput = () => {
+  fileInputRef.current?.click();
+};
 
   const { toast } = useToast()
 
@@ -87,7 +93,6 @@ export default function RegistroEmpleados() {
       resetForm()
       
       cargarEmpleados()
-      // Cuando se registra un nuevo empleado, volvemos a mostrar solo los recientes
       setMostrandoTodos(false)
     } catch (error: any) {
       console.error("Error en operación:", error)
@@ -158,14 +163,19 @@ export default function RegistroEmpleados() {
     setEmpleadoEditando(null);
   }
 
+  const [tipoImagen, setTipoImagen] = useState("image/jpeg");
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const fileName = e.target.files[0].name.toLowerCase().replace(/\s+/g, "_");
-      setImagen(fileName);
-      
-      console.log("Archivo seleccionado:", fileName);
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImagen(base64String); // preview inmediato
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   // Obtener los empleados a mostrar (todos o solo los más recientes)
   const empleadosAMostrar = mostrandoTodos 
@@ -212,29 +222,51 @@ export default function RegistroEmpleados() {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <label htmlFor="photo" className="block text-[#49454f] mb-2">
-                Fotografía
-              </label>
-              <div className="border border-[#cac4d0] rounded-md p-4 bg-white">
-                <input
-                  type="file"
-                  id="photo"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                />
-                <label htmlFor="photo">
-                  <Button type="button" variant="outline" className="text-[#49454f]">
-                    Choose File
-                  </Button>
-                </label>
-                <p className="text-xs text-[#79747e] mt-2">
-                  {imagen !== "default.jpg" ? imagen : "No file chosen"} (Tamaño máximo: 1.5 MB)
-                </p>
-              </div>
-            </div>
+  <label htmlFor="photo" className="block text-[#49454f] mb-2">
+    Fotografía
+  </label>
+
+  <div className="border border-[#cac4d0] rounded-md p-4 bg-white flex items-center gap-4">
+    {/* Imagen preview */}
+    <div className="w-20 h-20 rounded-full border border-gray-300 overflow-hidden">
+      <img
+        src={
+          imagen && imagen !== "default.jpg"
+            ? imagen
+            : "/userPlaceholder.png"
+        }
+        alt="Foto del empleado"
+        className="w-full h-full object-cover"
+      />
+    </div>
+
+    {/* Botón para subir/cambiar foto */}
+    <div>
+      <Button
+        type="button"
+        variant="outline"
+        className="text-[#49454f] cursor-pointer"
+        onClick={triggerFileInput}
+      >
+        {imagen && imagen !== "default.jpg" ? "Cambiar Foto" : "Subir Foto"}
+      </Button>
+
+      <input
+        type="file"
+        id="photo"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleImageUpload}
+        accept="image/*"
+      />
+
+      <p className="text-xs text-[#79747e] mt-2">
+        Formato permitido: .jpg, .png. Tamaño máximo recomendado: 1.5 MB
+      </p>
+    </div>
+  </div>
+</div>
 
             <div className="flex justify-end gap-2 mt-6">
               <Button 
@@ -301,7 +333,7 @@ export default function RegistroEmpleados() {
                             alt={`Foto de ${empleado.Nombre}`} 
                             className="w-10 h-10 rounded-full object-cover border border-gray-300"
                             onError={(e) => {
-                              e.currentTarget.src = "/placeholder-user.png";
+                              e.currentTarget.src = "./userPlaceholder.png";
                             }}
                           />
                         </td>

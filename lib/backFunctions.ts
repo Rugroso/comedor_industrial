@@ -66,7 +66,7 @@ export const registrarEmpleado = async (nombre: string, departamento: string, im
       {
         Nombre: nombre,
         Departamento: departamento,
-        Imagen: imagen
+        imagenBase64: imagen,
       }
     );
     console.log("Empleado registrado:", response.data);

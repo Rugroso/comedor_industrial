@@ -248,8 +248,8 @@ export const registrarConsumo = async (idEmpleado, idComida) => {
   }
 };
 
-// Función para obtener consumos por día
-export const fetchConsumosPorDia = async () => {
+// Función para obtener los consumos del día
+export const fetchConsumosDia = async () => {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/consumos/dia`
@@ -257,7 +257,7 @@ export const fetchConsumosPorDia = async () => {
     console.log("Datos de consumos por día:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error obteniendo consumos por día:", error);
+    console.error("Error obteniendo consumos del día:", error);
     throw error;
   }
 };
@@ -267,12 +267,14 @@ export const fetchConsumosHoyPorTipo = async () => {
   try {
     console.log("Obteniendo conteo de comidas de hoy por tipo");
     
+    // Usamos el endpoint de consumos por día
     const response = await axios.get(
       `${API_BASE_URL}/consumos/dia`
     );
     
     console.log("Datos recibidos de /consumos/dia:", response.data);
     
+    // Inicializamos contadores
     const conteo = {
       desayuno: 0,
       comida: 0,
@@ -281,16 +283,21 @@ export const fetchConsumosHoyPorTipo = async () => {
       total: 0
     };
     
+    // Verificamos si tenemos datos para procesar
     if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
       console.log("No hay datos de consumos por día disponibles");
       return conteo;
     }
     
+    // Imprimimos la estructura del primer elemento para depuración
     console.log("Estructura del primer elemento:", JSON.stringify(response.data[0], null, 2));
     
+    // Procesamos cada entrada
     response.data.forEach(item => {
-
-      let cantidad = 1; 
+      // Intentamos extraer diferentes variantes posibles de propiedades
+      
+      // Para la cantidad
+      let cantidad = 1; // Por defecto asumimos 1 si no hay cantidad especificada
       
       if (typeof item.cantidad !== 'undefined') cantidad = Number(item.cantidad);
       else if (typeof item.Cantidad !== 'undefined') cantidad = Number(item.Cantidad);
@@ -299,6 +306,7 @@ export const fetchConsumosHoyPorTipo = async () => {
       else if (typeof item.total !== 'undefined') cantidad = Number(item.total);
       else if (typeof item.Total !== 'undefined') cantidad = Number(item.Total);
       
+      // Para el tipo
       let tipo = '';
       
       if (typeof item.tipoComida !== 'undefined') tipo = item.tipoComida.toLowerCase();
@@ -309,6 +317,7 @@ export const fetchConsumosHoyPorTipo = async () => {
       
       console.log(`Procesando item: tipo=${tipo}, cantidad=${cantidad}`, item);
       
+      // Si no tenemos tipo pero tenemos algún indicador en el nombre
       if (!tipo && item.nombre) {
         const nombre = item.nombre.toLowerCase();
         if (nombre.includes('desayuno')) tipo = 'desayuno';
@@ -316,6 +325,7 @@ export const fetchConsumosHoyPorTipo = async () => {
         else if (nombre.includes('cena')) tipo = 'cena';
       }
       
+      // Sumamos al contador correspondiente
       if (tipo === 'desayuno') {
         conteo.desayuno += cantidad;
       } else if (tipo === 'comida') {
@@ -326,6 +336,7 @@ export const fetchConsumosHoyPorTipo = async () => {
         conteo.otro += cantidad;
       }
       
+      // Sumamos al total
       conteo.total += cantidad;
     });
     
@@ -333,10 +344,67 @@ export const fetchConsumosHoyPorTipo = async () => {
     return conteo;
   } catch (error) {
     console.error("Error obteniendo consumos de hoy por tipo:", error);
+    // Devolvemos valores por defecto en caso de error
     return { desayuno: 0, comida: 0, cena: 0, otro: 0, total: 0 };
   }
 };
 
+// Función para obtener los consumos del día con detalles completos
+export const fetchConsumosDelDiaConDetalles = async (): Promise<ConsumoConDetalles[]> => {
+  try {
+    // Fecha actual en formato YYYY-MM-DD para comparar
+    const hoy = new Date().toISOString().split('T')[0];
+    console.log("Buscando consumos para la fecha:", hoy);
+    
+    // Obtenemos datos de las tres entidades necesarias
+    const [consumosData, empleadosData, comidasData] = await Promise.all([
+      fetchConsumos(),
+      fetchEmpleados(),
+      fetchComida()
+    ]);
+    
+    // Si alguna llamada falló, devolvemos un array vacío
+    if (!consumosData || !empleadosData || !comidasData) {
+      console.error("No se pudieron obtener los datos necesarios");
+      return [];
+    }
+    
+    // Filtramos los consumos para obtener solo los de hoy
+    const consumosHoy = consumosData.filter(consumo => {
+      const fechaConsumo = new Date(consumo.Fecha);
+      const fechaStr = fechaConsumo.toISOString().split('T')[0];
+      return fechaStr === hoy;
+    });
+    
+    console.log(`Se encontraron ${consumosHoy.length} consumos para hoy`);
+    
+    // Combinamos la información para cada consumo
+    const consumosDetallados = consumosHoy.map((consumo: Consumo) => {
+      const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
+      const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
+      
+      return {
+        ...consumo,
+        nombreEmpleado: empleado?.Nombre || 'Empleado desconocido',
+        departamentoEmpleado: empleado?.Departamento || 'Departamento desconocido',
+        imagenEmpleado: empleado?.Imagen || 'default.jpg',
+        nombreComida: comida?.Nombre || 'Comida desconocida',
+        tipoComida: comida?.Tipo || 'Tipo desconocido',
+        precioComida: comida?.Precio || 0
+      };
+    });
+    
+    // Ordenamos por fecha descendente (los más recientes primero)
+    return consumosDetallados.sort((a, b) => 
+      new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
+    );
+  } catch (error) {
+    console.error("Error obteniendo consumos del día:", error);
+    return [];
+  }
+};
+
+// Función para determinar el tipo de comida según la hora actual
 export const determinarTipoComida = () => {
   const hora = new Date().getHours();
   
@@ -351,18 +419,24 @@ export const determinarTipoComida = () => {
   }
 };
 
+// NUEVAS FUNCIONES PARA MEJORAR LA VISUALIZACIÓN DE CONSUMOS RECIENTES
+
+// Función para obtener consumos con detalles completos (empleado y comida)
 export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> => {
   try {
+    // Obtenemos datos de las tres entidades
     const [consumosData, empleadosData, comidasData] = await Promise.all([
       fetchConsumos(),
       fetchEmpleados(),
       fetchComida()
     ]);
 
+    // Si alguna llamada falló, devolvemos un array vacío
     if (!consumosData || !empleadosData || !comidasData) {
       return [];
     }
 
+    // Combinamos la información
     const consumosDetallados = consumosData.map((consumo: Consumo) => {
       const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
       const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
@@ -376,6 +450,7 @@ export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> =
       };
     });
 
+    // Ordenamos por fecha descendente (los más recientes primero)
     return consumosDetallados.sort((a, b) => 
       new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
@@ -385,6 +460,7 @@ export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> =
   }
 };
 
+// Función para obtener consumos con detalles desde el endpoint empleado/consumos
 export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]> => {
   try {
     const response = await axios.get(
@@ -393,6 +469,8 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
     
     console.log("Respuesta del servidor (empleado/consumos):", response.data);
     
+    // Adaptamos la respuesta a nuestro tipo ConsumoConDetalles
+    // La estructura puede variar dependiendo de cómo esté configurada la API
     const consumosDetallados = response.data.map(item => ({
       Id_Consumo: item.Id_Consumo || item.ID_Consumo,
       ID_Comida: item.ID_Comida,
@@ -405,8 +483,10 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
       tipoComida: item.Tipo_Comida || item.TipoComida || item.Tipo
     }));
     
+    // Solo para depuración
     console.log("Consumos detallados después del mapeo:", consumosDetallados[0]);
     
+    // Ordenamos por fecha descendente
     return consumosDetallados.sort((a, b) => 
       new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
@@ -417,10 +497,13 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
 };
 
 export const formatearFecha = (fechaISO: string): string => {
+  // Crear la fecha a partir del string ISO
   const fecha = new Date(fechaISO);
   
+  // Sumar 7 horas para ajustar la diferencia de zona horaria
   fecha.setHours(fecha.getHours() + 7);
   
+  // Formatear la hora ajustada
   return fecha.toLocaleTimeString('es-MX', { 
     hour: '2-digit', 
     minute: '2-digit'

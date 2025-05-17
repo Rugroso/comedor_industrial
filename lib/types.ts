@@ -39,4 +39,13 @@ export type Comida = {
    nombreComida?: string; // Nombre de la comida
    tipoComida?: string; // Tipo de comida (desayuno, comida)
  };
+
+ // Tipo para los contadores de comidas por tipo
+type ConteoComidasPorTipo = { 
+  desayuno: number; // Desayuno
+  comida: number; // Comida
+  cena: number; // Cena
+  otro: number; // Tipo de comida no especificado
+  total: number; // Total de comidas
+}
  

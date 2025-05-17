@@ -22,6 +22,7 @@ export default function RegistroEmpleados() {
   const [empleadoEditando, setEmpleadoEditando] = useState<string | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mostrandoTodos, setMostrandoTodos] = useState(false)
 
   const { toast } = useToast()
 
@@ -34,7 +35,11 @@ export default function RegistroEmpleados() {
     setLoading(true)
     try {
       const data = await fetchEmpleados()
-      setEmpleados(data)
+      // Ordenamos los empleados por ID de forma descendente (asumiendo que los IDs más altos son los más recientes)
+      const empleadosOrdenados = [...data].sort((a, b) => 
+        Number(b.Id_Empleado) - Number(a.Id_Empleado)
+      )
+      setEmpleados(empleadosOrdenados)
     } catch (error) {
       console.error("Error al cargar empleados:", error)
       toast({
@@ -82,6 +87,8 @@ export default function RegistroEmpleados() {
       resetForm()
       
       cargarEmpleados()
+      // Cuando se registra un nuevo empleado, volvemos a mostrar solo los recientes
+      setMostrandoTodos(false)
     } catch (error: any) {
       console.error("Error en operación:", error)
       
@@ -159,6 +166,11 @@ export default function RegistroEmpleados() {
       console.log("Archivo seleccionado:", fileName);
     }
   }
+
+  // Obtener los empleados a mostrar (todos o solo los más recientes)
+  const empleadosAMostrar = mostrandoTodos 
+    ? empleados 
+    : empleados.slice(0, 5); // Solo tomamos los primeros 5 (que ya están ordenados por más recientes)
 
   return (
     <Layout title="Registro de empleados">
@@ -248,7 +260,22 @@ export default function RegistroEmpleados() {
         </Card>
 
         <Card className="rounded-xl border-[#cac4d0] p-8">
-          <h2 className="text-xl font-medium text-[#1d1b20] mb-6">Empleados recientes</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-medium text-[#1d1b20]">
+              {mostrandoTodos ? "Todos los empleados" : "Empleados recientes"}
+            </h2>
+            
+            {empleados.length > 5 && (
+              <Button 
+                type="button"
+                variant="outline"
+                className="text-sm text-[#49454f]"
+                onClick={() => setMostrandoTodos(!mostrandoTodos)}
+              >
+                {mostrandoTodos ? "Mostrar recientes" : "Ver todos"}
+              </Button>
+            )}
+          </div>
 
           {loading ? (
             <p className="text-center py-4">Cargando empleados...</p>
@@ -264,9 +291,9 @@ export default function RegistroEmpleados() {
                   </tr>
                 </thead>
                 <tbody>
-                  {empleados.length > 0 ? (
-                    empleados.map((empleado, index) => (
-                      <tr key={empleado.Id_Empleado || index} className={index < empleados.length - 1 ? "border-b border-[#cac4d0]" : ""}>
+                  {empleadosAMostrar.length > 0 ? (
+                    empleadosAMostrar.map((empleado, index) => (
+                      <tr key={empleado.Id_Empleado || index} className={index < empleadosAMostrar.length - 1 ? "border-b border-[#cac4d0]" : ""}>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Nombre}</td>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Id_Empleado}</td>
                         <td className="px-4 py-3 text-[#1d1b20]">{empleado.Departamento}</td>

@@ -10,22 +10,40 @@ import {
   fetchEmpleados, 
   fetchConsumos, 
   fetchConsumosConEmpleados,
+  fetchConsumosHoyPorTipo,
   formatearFecha 
 } from "@/lib/backFunctions"
 import { useEffect, useState } from "react"
 
+// Tipo para los contadores de comidas por tipo
+type ConteoComidasPorTipo = {
+  desayuno: number;
+  comida: number;
+  cena: number;
+  otro: number;
+  total: number;
+}
 
 export default function Dashboard() {
   const [loadingComida, setLoadingComida] = useState(true)
   const [loadingEmpleados, setLoadingEmpleados] = useState(true)
   const [loadingConsumos, setLoadingConsumos] = useState(true)
+  const [loadingConteos, setLoadingConteos] = useState(true)
   const [comida, setComida] = useState<Comida[]>([])
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [consumos, setConsumos] = useState<Consumo[]>([])
   const [consumosDetallados, setConsumosDetallados] = useState<ConsumoConDetalles[]>([])
+  const [conteosPorTipo, setConteosPorTipo] = useState<ConteoComidasPorTipo>({
+    desayuno: 0,
+    comida: 0,
+    cena: 0,
+    otro: 0,
+    total: 0
+  })
   const [totalEmpleados, setTotalEmpleados] = useState(0)
   const [error, setError] = useState("")
 
+  // Fetch comidas
   useEffect(() => { 
      fetchComida().then((data) => {
       setComida(data)
@@ -36,6 +54,7 @@ export default function Dashboard() {
     })
   }, [])
 
+  // Fetch empleados
   useEffect(() => { 
     fetchEmpleados().then((data) => {
       setEmpleados(data)
@@ -47,6 +66,7 @@ export default function Dashboard() {
     })
   }, [])
 
+  // Fetch consumos básicos
   useEffect(() => {
     fetchConsumos().then((data) => {
       setConsumos(data)
@@ -57,6 +77,7 @@ export default function Dashboard() {
     })
   }, [])
 
+  // Fetch consumos detallados
   useEffect(() => {
     setLoadingConsumos(true)
     fetchConsumosConEmpleados()
@@ -71,6 +92,34 @@ export default function Dashboard() {
       })
   }, [])
 
+  // NUEVO: Fetch conteo de comidas por tipo para hoy
+  useEffect(() => {
+    setLoadingConteos(true)
+    fetchConsumosHoyPorTipo()
+      .then((data) => {
+        setConteosPorTipo(data)
+        setLoadingConteos(false)
+      })
+      .catch((error) => {
+        console.error("Error obteniendo conteo de comidas por tipo:", error)
+        setLoadingConteos(false)
+      })
+
+    // Refrescar los datos cada 5 minutos
+    const interval = setInterval(() => {
+      fetchConsumosHoyPorTipo()
+        .then((data) => {
+          setConteosPorTipo(data)
+        })
+        .catch((error) => {
+          console.error("Error actualizando conteo de comidas por tipo:", error)
+        })
+    }, 300000) // 5 minutos en milisegundos
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Método anterior (por si acaso necesitamos fallback)
   const getTotalComidasPorTipo = (tipo) => {
     if (loadingComida || !comida || comida.length === 0) return 0;
     return comida.filter((item) => item.Tipo === tipo).length;
@@ -87,11 +136,11 @@ export default function Dashboard() {
             <div>
               {/* TOTAL DESAYUNOS */}
               <p className="text-sm text-[#49454f]">Total desayunos hoy</p>
-              {loadingComida ? (
+              {loadingConteos ? (
                 <p className="text-2xl font-bold text-[#1d1b20]">Cargando...</p>
               ) : (
                 <p className="text-2xl font-bold text-[#1d1b20]">
-                  {getTotalComidasPorTipo("desayuno")}
+                  {conteosPorTipo.desayuno}
                 </p>
               )}
             </div>
@@ -106,11 +155,11 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-[#49454f]">Total comidas hoy</p>
-              {loadingComida ? (
+              {loadingConteos ? (
                 <p className="text-2xl font-bold text-[#1d1b20]">Cargando...</p>
               ) : (
                 <p className="text-2xl font-bold text-[#1d1b20]">
-                  {getTotalComidasPorTipo("comida")}
+                  {conteosPorTipo.comida}
                 </p>
               )}
             </div>

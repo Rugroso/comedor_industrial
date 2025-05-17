@@ -1,140 +1,135 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Sector } from 'recharts';
-import { fetchConsumosEmpleados } from '@/lib/backFunctions';
+import { fetchConsumosEmpleados, fetchConsumosPorDia } from '@/lib/backFunctions';
 
-// Colores para las diferentes secciones del gráfico
 const COLORS = ['#dca8e4', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28'];
 
-// En lugar de usar interface, usamos comentarios para documentar la estructura
-// Los datos procesados tienen esta estructura:
-// {
-//   departamento: string,
-//   cantidad: number,
-//   total: number
-// }
-
 const GraficoConsumosPorDepartamento = () => {
-  const [datosProcesados, setDatosProcesados] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [tipoGrafico, setTipoGrafico] = useState('bar'); // 'bar' o 'pie'
+  const [datosConsumoPorDia, setDatosConsumoPorDia] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [tipoGrafico, setTipoGrafico] = useState('bar');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Cargar y procesar datos directamente desde la API
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        setLoading(true);
-        // Obtener datos directamente de la API
-        const datosConsumos = await fetchConsumosEmpleados();
-        
-        // Procesar los datos para el gráfico
-        procesarDatosParaGrafico(datosConsumos);
-      } catch (err) {
-        console.error("Error al cargar datos para el gráfico:", err);
-        setError("No se pudieron cargar los datos. Intente nuevamente más tarde.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     cargarDatos();
     
-    // Configurar intervalo para actualización cada 60 segundos (opcional)
     const intervalo = setInterval(() => {
       cargarDatos();
     }, 60000);
     
-    // Limpiar intervalo al desmontar
     return () => clearInterval(intervalo);
   }, []);
 
-  // Función para procesar los datos recibidos de la API
-  const procesarDatosParaGrafico = (datosAPI) => {
-    // Si no hay datos, no hacemos nada
+  const cargarDatos = async () => {
+    try {
+      setLoading(true);
+      const datosConsumosDia = await fetchConsumosPorDia();
+      procesarDatosPorDia(datosConsumosDia);
+      setError(null);
+    } catch (err) {
+      console.error("Error al cargar datos para el gráfico:", err);
+      setError("No se pudieron cargar los datos. Intente nuevamente más tarde.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const procesarDatosPorDia = (datosAPI) => {
     if (!datosAPI || datosAPI.length === 0) {
-      setDatosProcesados([]);
+      setDatosConsumoPorDia([]);
+      setDepartamentos([]);
       return;
     }
 
-    // Agrupar consumos por departamento
-    const consumosPorDepartamento = {};
+    console.log("Datos originales de API consumos/dia:", datosAPI);
+
+    const departamentosUnicos = new Set();
     
-    for (const consumo of datosAPI) {
-      const { Departamento, Precio } = consumo;
+    const consumosPorDia = {};
+    
+    datosAPI.forEach(item => {
+      const fecha = new Date(item.fecha || item.Fecha);
+      const fechaStr = fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+      const fechaFormatted = fecha.toISOString().split('T')[0]; // para ordenar
       
-      // Saltamos si no tiene departamento
-      if (!Departamento) continue;
+      const departamento = item.departamento || item.Departamento;
       
-      if (!consumosPorDepartamento[Departamento]) {
-        consumosPorDepartamento[Departamento] = {
-          departamento: Departamento,
-          cantidad: 0,
-          total: 0
+      if (!departamento) {
+        console.warn("Encontrado item sin departamento:", item);
+        return; // Skip this item
+      }
+      
+      departamentosUnicos.add(departamento);
+      
+      if (!consumosPorDia[fechaFormatted]) {
+        consumosPorDia[fechaFormatted] = {
+          fecha: fechaStr,
+          fechaSort: fechaFormatted,
+          totalDia: 0,
         };
       }
       
-      consumosPorDepartamento[Departamento].cantidad += 1;
-      consumosPorDepartamento[Departamento].total += parseFloat(Precio || '0');
+      let cantidad = 0;
+      if (typeof item.cantidad !== 'undefined') cantidad = Number(item.cantidad);
+      else if (typeof item.Cantidad !== 'undefined') cantidad = Number(item.Cantidad);
+      else if (typeof item.count !== 'undefined') cantidad = Number(item.count);
+      else if (typeof item.Count !== 'undefined') cantidad = Number(item.Count);
+      else if (typeof item.total !== 'undefined') cantidad = Number(item.total);
+      else if (typeof item.Total !== 'undefined') cantidad = Number(item.Total);
+      else cantidad = 1; 
+      
+      if (!consumosPorDia[fechaFormatted][departamento]) {
+        consumosPorDia[fechaFormatted][departamento] = 0;
+      }
+      consumosPorDia[fechaFormatted][departamento] += cantidad;
+      consumosPorDia[fechaFormatted].totalDia += cantidad;
+    });
+    
+    const datosFormateados = Object.values(consumosPorDia);
+    datosFormateados.sort((a, b) => a.fechaSort.localeCompare(b.fechaSort));
+    
+    console.log("Datos procesados para gráfico:", datosFormateados);
+    console.log("Departamentos detectados:", Array.from(departamentosUnicos));
+    
+    const departamentosArray = Array.from(departamentosUnicos);
+    
+    setDepartamentos(departamentosArray);
+    setDatosConsumoPorDia(datosFormateados);
+  };
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const total = payload.reduce((sum, entry) => sum + (entry.value || 0), 0);
+      
+      return (
+        <div className="bg-white p-3 border border-[#cac4d0] rounded-lg shadow-sm">
+          <p className="text-sm font-medium">{`${label}`}</p>
+          <p className="text-xs text-gray-500 mb-2">Total: {total} consumos</p>
+          {payload.map((entry, index) => (
+            entry.value > 0 && (
+              <div key={index} className="flex items-center justify-between mb-1">
+                <div className="flex items-center">
+                  <div 
+                    className="w-3 h-3 mr-2" 
+                    style={{ backgroundColor: entry.color }}
+                  ></div>
+                  <span className="text-xs">{entry.name}: </span>
+                </div>
+                <span className="text-xs font-medium ml-2">{entry.value}</span>
+              </div>
+            )
+          ))}
+        </div>
+      );
     }
-    
-    // Convertir a array para los gráficos y ordenar por cantidad
-    const datosArray = Object.values(consumosPorDepartamento)
-      .map(dept => ({
-        ...dept,
-        total: parseFloat(dept.total.toFixed(2))  // Redondear a 2 decimales
-      }))
-      .sort((a, b) => b.cantidad - a.cantidad);
-    
-    setDatosProcesados(datosArray);
+    return null;
   };
 
-  // Renderizado de sector activo para el PieChart
-  const renderActiveShape = (props) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-  
-    return (
-      <g>
-        <text x={cx} y={cy} dy={-20} textAnchor="middle" fill="#333" className="text-sm">
-          {payload.departamento}
-        </text>
-        <text x={cx} y={cy} dy={10} textAnchor="middle" fill="#999" className="text-xs">
-          {`${value} consumos (${(percent * 100).toFixed(2)}%)`}
-        </text>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 5}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-      </g>
-    );
-  };
-
-  // Manejador de cambio de índice activo en el PieChart
-  const onPieEnter = (_, index) => {
-    setActiveIndex(index);
-  };
-
-  // Función para actualizar manualmente los datos
   const actualizarDatos = () => {
-    setLoading(true);
-    fetchConsumosEmpleados()
-      .then(data => {
-        procesarDatosParaGrafico(data);
-        setError(null);
-      })
-      .catch(err => {
-        console.error("Error al actualizar datos:", err);
-        setError("Error al actualizar. Intente nuevamente.");
-      })
-      .finally(() => setLoading(false));
+    cargarDatos();
   };
 
-  // Si está cargando, mostrar indicador
   if (loading) {
     return (
       <div className="flex h-48 items-center justify-center text-[#79747e]">
@@ -147,7 +142,6 @@ const GraficoConsumosPorDepartamento = () => {
     );
   }
 
-  // Si hay error, mostrar mensaje
   if (error) {
     return (
       <div className="flex flex-col h-48 items-center justify-center text-[#79747e]">
@@ -162,11 +156,10 @@ const GraficoConsumosPorDepartamento = () => {
     );
   }
 
-  // Si no hay datos, mostrar mensaje
-  if (datosProcesados.length === 0) {
+  if (datosConsumoPorDia.length === 0) {
     return (
       <div className="flex flex-col h-48 items-center justify-center text-[#79747e]">
-        <p className="mb-4">No hay datos suficientes para mostrar el gráfico</p>
+        <p className="mb-4">No hay datos suficientes</p>
         <button 
           onClick={actualizarDatos}
           className="px-4 py-2 bg-[#dca8e4] text-white rounded-md hover:bg-[#c794d1]"
@@ -199,75 +192,66 @@ const GraficoConsumosPorDepartamento = () => {
             Barras
           </button>
           <button
-            onClick={() => setTipoGrafico('pie')}
-            className={`px-3 py-1 rounded text-sm ${tipoGrafico === 'pie' ? 'bg-[#dca8e4] text-[#1d1b20]' : 'bg-gray-200 text-gray-700'}`}
+            onClick={() => setTipoGrafico('stacked')}
+            className={`px-3 py-1 rounded text-sm ${tipoGrafico === 'stacked' ? 'bg-[#dca8e4] text-[#1d1b20]' : 'bg-gray-200 text-gray-700'}`}
           >
-            Circular
+            Apiladas
           </button>
         </div>
       </div>
 
-      {/* Gráfico de Barras */}
+      {/* Gráfico de Barras (mostradas lado a lado) */}
       {tipoGrafico === 'bar' && (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
-            data={datosProcesados}
+            data={datosConsumoPorDia}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="departamento" tick={{ fill: '#49454f' }} />
+            <XAxis dataKey="fecha" tick={{ fill: '#49454f' }} />
             <YAxis tick={{ fill: '#49454f' }} />
-            <Tooltip 
-              formatter={(value, name) => [
-                name === 'cantidad' ? `${value} consumos` : `$${value}`, 
-                name === 'cantidad' ? 'Cantidad' : 'Total'
-              ]}
-              contentStyle={{ 
-                backgroundColor: '#fff',
-                border: '1px solid #cac4d0',
-                borderRadius: '8px'
-              }}
-            />
-            <Legend 
-              wrapperStyle={{ 
-                paddingTop: '15px'
-              }}
-            />
-            <Bar dataKey="cantidad" name="Cantidad de Consumos" fill="#dca8e4" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="total" name="Total ($)" fill="#8884d8" radius={[4, 4, 0, 0]} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {departamentos.map((departamento, index) => (
+              <Bar 
+                key={departamento} 
+                dataKey={departamento} 
+                name={departamento} 
+                fill={COLORS[index % COLORS.length]} 
+                radius={[4, 4, 0, 0]}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       )}
 
-      {/* Gráfico Circular */}
-      {tipoGrafico === 'pie' && (
+      {/* Gráfico de Barras Apiladas */}
+      {tipoGrafico === 'stacked' && (
         <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              activeIndex={activeIndex}
-              activeShape={renderActiveShape}
-              data={datosProcesados}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={90}
-              dataKey="cantidad"
-              onMouseEnter={onPieEnter}
-            >
-              {datosProcesados.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip 
-              formatter={(value) => [`${value} consumos`]}
-              contentStyle={{ 
-                backgroundColor: '#fff',
-                border: '1px solid #cac4d0',
-                borderRadius: '8px'
-              }}
+          <BarChart
+            data={datosConsumoPorDia}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            stackOffset="expand"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="fecha" tick={{ fill: '#49454f' }} />
+            <YAxis 
+              tick={{ fill: '#49454f' }}
+              tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
             />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
-          </PieChart>
+            {departamentos.map((departamento, index) => (
+              <Bar 
+                key={departamento} 
+                dataKey={departamento} 
+                name={departamento} 
+                stackId="a"
+                fill={COLORS[index % COLORS.length]} 
+                radius={[index === 0 ? 4 : 0, index === departamentos.length - 1 ? 4 : 0, index === departamentos.length - 1 ? 4 : 0, index === 0 ? 4 : 0]}
+              />
+            ))}
+          </BarChart>
         </ResponsiveContainer>
       )}
     </div>

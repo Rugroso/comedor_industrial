@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock } from "lucide-react"
+import { Calendar, Clock, Clock1 } from "lucide-react"
 import Layout from "@/components/layout"
 
 export default function Visualizacion() {
@@ -27,11 +27,6 @@ export default function Visualizacion() {
             <div className="flex items-center gap-2 text-[#49454f]">
               <Calendar className="h-5 w-5" />
               <span>Fecha: {currentDate}</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-[#49454f]">
-              <Clock className="h-5 w-5" />
-              <span>Actualización automática cada: 10 segundos</span>
             </div>
           </div>
         </div>

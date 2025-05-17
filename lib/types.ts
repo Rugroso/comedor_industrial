@@ -41,14 +41,14 @@ export type Comida = {
  };
 
  // Tipo para los contadores de comidas por tipo
-type ConteoComidasPorTipo = { 
+export type ConteoComidasPorTipo = { 
   desayuno: number; // Desayuno
   comida: number; // Comida
   otro: number; // Tipo de comida no especificado
   total: number; // Total de comidas
 }
 
-type ConsumoDia = {
+export type ConsumoDia = {
   ID_Consumo?: number; // ID del consumo
   Id_Consumo?: number; // ID del consumo
   ID_Empleado?: number; // ID del empleado

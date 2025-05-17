@@ -11,7 +11,7 @@ import {
   fetchComida,
   formatearFecha 
 } from "@/lib/backFunctions"
-import { Empleado, Comida } from "@/lib/types"
+import { Empleado, Comida, ConsumoDia } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function Visualizacion() {
@@ -188,6 +188,7 @@ export default function Visualizacion() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#cac4d0] text-left">
+                    <th className="pb-2 text-[#49454f]">Foto</th>
                     <th className="pb-2 text-[#49454f]">Empleado</th>
                     <th className="pb-2 text-[#49454f]">Departamento</th>
                     <th className="pb-2 text-[#49454f]">Comida</th>
@@ -209,6 +210,17 @@ export default function Visualizacion() {
                         key={consumo.ID_Consumo || consumo.Id_Consumo || index} 
                         className={index < consumosPaginados.length - 1 ? "border-b border-[#cac4d0]" : ""}
                       >
+                        <td className="py-3">
+                          <img 
+                            src={empleados.find(e => e.Id_Empleado === idEmpleado)?.Imagen || './userPlaceholder.png'} 
+                            alt={nombreEmpleado} 
+                            onError={(e) => {
+                              e.currentTarget.src = './userPlaceholder.png';
+                            }}
+                            className="w-10 h-10 rounded-full object-cover border border-gray-300"
+
+                          />
+                        </td>
                         <td className="py-3 text-[#1d1b20]">{nombreEmpleado}</td>
                         <td className="py-3 text-[#49454f] text-sm">{departamentoEmpleado}</td>
                         <td className="py-3 text-[#1d1b20]">{infoComida.nombre}</td>

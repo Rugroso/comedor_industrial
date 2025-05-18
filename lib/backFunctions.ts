@@ -667,7 +667,7 @@ export const fetchConsumosDelDiaConDetalles = async (): Promise<ConsumoConDetall
         ...consumo,
         nombreEmpleado: empleado?.Nombre || 'Empleado desconocido',
         departamentoEmpleado: empleado?.Departamento || 'Departamento desconocido',
-        imagenEmpleado: empleado?.Imagen || 'default.jpg',
+        Imagen: empleado?.Imagen || 'default.jpg',
         nombreComida: comida?.Nombre || 'Comida desconocida',
         tipoComida: comida?.Tipo || 'Tipo desconocido',
         precioComida: comida?.Precio || 0
@@ -757,6 +757,7 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
       ID_Consumo?: number;
       ID_Comida: number;
       ID_Empleado: number;
+      Imagen: string;
       Fecha: string;
       Precio?: number | string;
       Nombre_Empleado?: string;
@@ -774,6 +775,7 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
       Id_Consumo: number;
       ID_Comida: number;
       ID_Empleado: number;
+      Imagen: string;
       Fecha: string;
       Precio: number | string;
       nombreEmpleado?: string;
@@ -791,7 +793,8 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
       nombreEmpleado: item.Nombre_Empleado || item.NombreEmpleado || item.Nombre,
       departamentoEmpleado: item.Departamento,
       nombreComida: item.Nombre_Comida || item.NombreComida,
-      tipoComida: item.Tipo_Comida || item.TipoComida || item.Tipo
+      tipoComida: item.Tipo_Comida || item.TipoComida || item.Tipo,
+      Imagen: item.Imagen || "default.jpg"
     }));
     
     // Solo para depuración

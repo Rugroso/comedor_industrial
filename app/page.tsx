@@ -200,6 +200,7 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#cac4d0] text-left">
+                    <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Foto</th>
                     <th className="pb-2 text-[#49454f]">Empleado</th>
                     <th className="pb-2 text-[#49454f]">Departamento</th>
                     <th className="pb-2 text-[#49454f]">Comida</th>
@@ -213,6 +214,16 @@ export default function Dashboard() {
                       key={consumo.Id_Consumo || index} 
                       className={index < consumosDetallados.length - 1 ? "border-b border-[#cac4d0]" : ""}
                     >
+                      <td className="px-4 py-3">
+                        <img 
+                          src={consumo.Imagen || "/userPlaceholder.png"} 
+                          alt={`Foto de ${consumo.nombreEmpleado}`} 
+                          className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                          onError={(e) => {
+                            e.currentTarget.src = "/userPlaceholder.png";
+                          }}
+                        />
+                      </td>
                       <td className="py-3 text-[#1d1b20]">{consumo.nombreEmpleado || 'Desconocido'}</td>
                       <td className="py-3 text-[#49454f] text-sm">{consumo.departamentoEmpleado || '-'}</td>
                       <td className="py-3 text-[#1d1b20]">{consumo.nombreComida || 'Desconocido'}</td>

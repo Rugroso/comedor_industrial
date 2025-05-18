@@ -38,6 +38,7 @@ export type Comida = {
    departamentoEmpleado?: string; // Departamento del empleado
    nombreComida?: string; // Nombre de la comida
    tipoComida?: string; // Tipo de comida (desayuno, comida)
+   Imagen: string; // URL de la imagen del empleado
  };
 
  // Tipo para los contadores de comidas por tipo

@@ -316,7 +316,7 @@ const triggerFileInput = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-[#f3edf7] text-left">
-                  <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Foto</th>
+                    <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Foto</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium rounded-l-md">Nombre</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium">No. Empleado</th>
                     <th className="px-4 py-3 text-[#49454f] font-medium">Departamento</th>

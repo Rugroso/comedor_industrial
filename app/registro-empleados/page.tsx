@@ -333,7 +333,7 @@ const triggerFileInput = () => {
                             alt={`Foto de ${empleado.Nombre}`} 
                             className="w-10 h-10 rounded-full object-cover border border-gray-300"
                             onError={(e) => {
-                              e.currentTarget.src = "./userPlaceholder.png";
+                              e.currentTarget.src = "/userPlaceholder.png";
                             }}
                           />
                         </td>

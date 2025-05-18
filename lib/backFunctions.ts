@@ -1,7 +1,8 @@
 import axios from "axios"
 import { Comida, Consumo, Empleado, ConsumoConDetalles } from "./types"
+import { Content } from "vaul";
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = "https://d57ulgdxpc.execute-api.us-east-2.amazonaws.com";
 
 export const fetchComida = async () => {
   try {
@@ -67,6 +68,11 @@ export const registrarEmpleado = async (nombre: string, departamento: string, im
         Nombre: nombre,
         Departamento: departamento,
         Imagen: imagen
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
     );
     console.log("Empleado registrado:", response.data);
@@ -170,11 +176,8 @@ export const fetchConsumosEmpleados = async () => {
 // Función para obtener las comidas disponibles según la hora
 export const obtenerComidasPorHora = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/comidas/hora`, {
+    const response = await fetch(`${API_BASE_URL}/comidashora`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
     
     if (!response.ok) {
@@ -202,9 +205,6 @@ export const buscarEmpleado = async (
       `${API_BASE_URL}empleado/consumos?id=${empleadoId}`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       }
     );
 

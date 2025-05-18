@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Comedor Industrial',
+  title: 'Comedor Industrial "El Buen Rugroso"',
   description: 'Aplicacion Web para la gestion de comedores industriales',
 }
 

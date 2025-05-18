@@ -110,7 +110,7 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  const getTotalComidasPorTipo = (tipo) => {
+  const getTotalComidasPorTipo = (tipo: any) => {
     if (loadingComida || !comida || comida.length === 0) return 0;
     return comida.filter((item) => item.Tipo === tipo).length;
   };

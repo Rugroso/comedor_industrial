@@ -24,17 +24,11 @@ export default function Layout({ children, title }: LayoutProps) {
       <header className="border-b border-[#cac4d0] bg-[#fef7ff] p-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="text-xl font-bold text-[#1d1b20]">
-            Comedor Industrial
+            Comedor Industrial "El Buen Rugroso"
             <br />
           </div>
           <div className="flex items-center">
-            <span className="mr-6 text-[#1d1b20]">{title}</span>
-            <div className="ml-auto flex items-center gap-4">
-              <span className="font-medium text-[#1d1b20]">Admin</span>
-              <Link href="#" className="text-[#1d1b20]">
-                <LogOut className="h-5 w-5" />
-              </Link>
-            </div>
+            <span className="text-[#1d1b20] font-bold text-lg">{title}</span>
           </div>
         </div>
       </header>

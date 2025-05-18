@@ -190,20 +190,29 @@ export const obtenerComidasPorHora = async () => {
 };
 
 // Función para buscar empleado por ID
-export const buscarEmpleado = async (empleadoId) => {
+interface BuscarEmpleadoResponse {
+  [key: string]: any;
+}
+
+export const buscarEmpleado = async (
+  empleadoId: string | number
+): Promise<BuscarEmpleadoResponse | null> => {
   try {
-    const response = await fetch(`${API_BASE_URL}empleado/consumos?id=${empleadoId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
+    const response: Response = await fetch(
+      `${API_BASE_URL}empleado/consumos?id=${empleadoId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
     if (!response.ok) {
       throw new Error('Empleado no encontrado');
     }
-    
-    const data = await response.json();
+
+    const data: BuscarEmpleadoResponse = await response.json();
     return data;
   } catch (error) {
     console.error('Error:', error);
@@ -212,29 +221,53 @@ export const buscarEmpleado = async (empleadoId) => {
 };
 
 // Función para registrar un consumo
-export const registrarConsumo = async (idEmpleado, idComida) => {
+interface RegistrarConsumoParams {
+  idEmpleado: string | number;
+  idComida: string | number;
+}
+
+interface ConsumoRequestBody {
+  Id_Empleado: string | number;
+  Id_Comida: string | number;
+  Fecha: string;
+}
+
+interface RegistrarConsumoSuccessResponse {
+  success: true;
+  data: any;
+}
+
+interface RegistrarConsumoErrorResponse {
+  success: false;
+  message: string;
+}
+
+export const registrarConsumo = async (
+  idEmpleado: RegistrarConsumoParams["idEmpleado"],
+  idComida: RegistrarConsumoParams["idComida"]
+): Promise<RegistrarConsumoSuccessResponse | RegistrarConsumoErrorResponse> => {
   try {
-    const fecha = new Date().toISOString();
-    
-    const consumoData = {
+    const fecha: string = new Date().toISOString();
+
+    const consumoData: ConsumoRequestBody = {
       Id_Empleado: idEmpleado,
       Id_Comida: idComida,
       Fecha: fecha
     };
-    
-    const response = await fetch(`${API_BASE_URL}/consumos`, {
+
+    const response: Response = await fetch(`${API_BASE_URL}/consumos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(consumoData),
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al registrar consumo');
     }
-    
-    const data = await response.json();
+
+    const data: any = await response.json();
     return {
       success: true,
       data
@@ -243,7 +276,7 @@ export const registrarConsumo = async (idEmpleado, idComida) => {
     console.error('Error:', error);
     return {
       success: false,
-      message: error.message
+      message: (error instanceof Error ? error.message : String(error))
     };
   }
 };
@@ -329,47 +362,183 @@ export type ReporteHistorico = {
   url: string;
 };
 
-// Función para obtener reporte detallado por fecha
 export const fetchReporteDetallado = async (fecha: string) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/reportes/detallado?fecha=${fecha}`
-    );
-    console.log("Datos de reporte detallado:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error obteniendo reporte detallado:", error);
-    throw error;
-  }
-};
+    console.log(`Solicitando reporte detallado para fecha: ${fecha}`)
+    const response = await axios.get(`${API_BASE_URL}/reportes/detallado?fecha=${fecha}`)
+    console.log("Datos de reporte detallado recibidos:", response.data)
 
-// Función para obtener reporte ejecutivo mensual
+    // Verificar si los datos están vacíos
+    if (!response.data) {
+      console.warn("El servidor devolvió datos vacíos para reporte detallado")
+      throw new Error("No se recibieron datos del servidor")
+    }
+
+    // Transformar los datos al formato esperado por el componente
+    const reporteFormateado = {
+      fecha: response.data.fecha,
+      consumos: [], // La API no devuelve la lista detallada de consumos
+      totales: {
+        desayunos: response.data.resumen?.totalDesayunos || 0,
+        comidas: response.data.resumen?.totalComidas || 0,
+        total: response.data.resumen?.totalRegistros || 0,
+        importe: Number.parseFloat(response.data.resumen?.montoTotal || 0),
+      },
+    }
+
+    return reporteFormateado
+  } catch (error) {
+    console.error("Error obteniendo reporte detallado:", error)
+    throw error
+  }
+}
+
+// Modificar la función fetchReporteEjecutivo para eliminar referencias a cenas y otros
 export const fetchReporteEjecutivo = async (mes: string) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/reportes/ejecutivo?mes=${mes}`
-    );
-    console.log("Datos de reporte ejecutivo:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error obteniendo reporte ejecutivo:", error);
-    throw error;
-  }
-};
+    console.log(`Solicitando reporte ejecutivo para mes: ${mes}`)
+    const response = await axios.get(`${API_BASE_URL}/reportes/ejecutivo?mes=${mes}`)
+    console.log("Datos de reporte ejecutivo recibidos:", response.data)
 
-// Función para obtener reporte del día
+    // Verificar si los datos están vacíos
+    if (!response.data) {
+      console.warn("El servidor devolvió datos vacíos para reporte ejecutivo")
+      throw new Error("No se recibieron datos del servidor")
+    }
+
+    // Transformar los datos al formato esperado por el componente
+    interface DepartamentoReporte {
+      Departamento: string;
+      cantidad: string | number;
+      monto: string | number;
+    }
+
+    const departamentos: {
+      nombre: string;
+      consumos: number;
+      importe: number;
+    }[] =
+      response.data.porDepartamento?.map((dept: DepartamentoReporte) => ({
+      nombre: dept.Departamento,
+      consumos: Number.parseInt(dept.cantidad as string),
+      importe: Number.parseFloat(dept.monto as string),
+      })) || [];
+
+    // Crear objeto para los tipos de comida (solo desayunos y comidas)
+    const porTipo = {
+      desayunos: 0,
+      comidas: 0,
+    }
+
+    // Llenar los datos de tipos de comida
+    if (response.data.porTipoComida && Array.isArray(response.data.porTipoComida)) {
+      interface TipoComidaItem {
+        Tipo?: string;
+        cantidad?: number | string;
+      }
+
+      (response.data.porTipoComida as TipoComidaItem[]).forEach((item: TipoComidaItem) => {
+        const tipo: string = item.Tipo?.toLowerCase() || "";
+        if (tipo === "desayuno") {
+          porTipo.desayunos = Number.parseInt(item.cantidad as string);
+        } else if (tipo === "comida") {
+          porTipo.comidas = Number.parseInt(item.cantidad as string);
+        }
+      });
+    }
+
+    const reporteFormateado = {
+      mes: response.data.periodo,
+      departamentos: departamentos,
+      totales: {
+        consumos: Number.parseInt(response.data.resumen?.totalConsumos || 0),
+        importe: Number.parseFloat(response.data.resumen?.montoTotal || 0),
+      },
+      porTipo: porTipo,
+    }
+
+    return reporteFormateado
+  } catch (error) {
+    console.error("Error obteniendo reporte ejecutivo:", error)
+    throw error
+  }
+}
+
+// Modificar la función fetchReporteDia para eliminar referencias a cenas y otros
 export const fetchReporteDia = async () => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/reportes/dia`
-    );
-    console.log("Datos de reporte del día:", response.data);
-    return response.data;
+    console.log("Solicitando reporte del día")
+    const response = await axios.get(`${API_BASE_URL}/reportes/dia`)
+    console.log("Datos de reporte del día recibidos:", response.data)
+
+    // Verificar si los datos están vacíos o no son un array
+    if (!response.data || !Array.isArray(response.data)) {
+      console.warn("El servidor devolvió datos en formato incorrecto para reporte del día")
+      throw new Error("Formato de datos incorrecto")
+    }
+
+    // Agrupar consumos por departamento
+    const departamentoMap = new Map()
+    const tiposComida = {
+      desayuno: 0,
+      comida: 0,
+    }
+
+    let importeTotal = 0
+
+    // Procesar cada consumo
+    response.data.forEach((consumo) => {
+      const departamento = consumo.NombreEmpleado?.split(" ")[0] || "Sin departamento"
+      const precio = Number.parseFloat(consumo.PrecioComida || 0)
+      const tipoComida = consumo.TipoComida?.toLowerCase()
+
+      // Actualizar contadores de tipo de comida
+      if (tipoComida === "desayuno") {
+        tiposComida.desayuno++
+      } else if (tipoComida === "comida") {
+        tiposComida.comida++
+      }
+
+      // Actualizar importe total
+      importeTotal += precio
+
+      // Actualizar datos del departamento
+      if (!departamentoMap.has(departamento)) {
+        departamentoMap.set(departamento, {
+          nombre: departamento,
+          consumos: 0,
+          importe: 0,
+        })
+      }
+
+      const deptData = departamentoMap.get(departamento)
+      deptData.consumos++
+      deptData.importe += precio
+      departamentoMap.set(departamento, deptData)
+    })
+
+    // Convertir el mapa a un array
+    const departamentos = Array.from(departamentoMap.values())
+
+    // Crear el objeto de reporte formateado
+    const reporteFormateado = {
+      fecha: new Date().toISOString().split("T")[0],
+      departamentos: departamentos,
+      totales: {
+        desayunos: tiposComida.desayuno,
+        comidas: tiposComida.comida,
+        total: response.data.length,
+        importe: importeTotal,
+      },
+    }
+
+    return reporteFormateado
   } catch (error) {
-    console.error("Error obteniendo reporte del día:", error);
-    throw error;
+    console.error("Error obteniendo reporte del día:", error)
+    throw error
   }
-};
+}
+
 
 // Función para obtener el conteo de comidas por tipo para el día actual
 export const fetchConsumosHoyPorTipo = async () => {
@@ -479,9 +648,11 @@ export const fetchConsumosDelDiaConDetalles = async (): Promise<ConsumoConDetall
     }
     
     // Filtramos los consumos para obtener solo los de hoy
-    const consumosHoy = consumosData.filter(consumo => {
-      const fechaConsumo = new Date(consumo.Fecha);
-      const fechaStr = fechaConsumo.toISOString().split('T')[0];
+    interface ConsumoHoy extends Consumo {}
+
+    const consumosHoy: ConsumoHoy[] = consumosData.filter((consumo: Consumo) => {
+      const fechaConsumo: Date = new Date(consumo.Fecha);
+      const fechaStr: string = fechaConsumo.toISOString().split('T')[0];
       return fechaStr === hoy;
     });
     
@@ -489,8 +660,8 @@ export const fetchConsumosDelDiaConDetalles = async (): Promise<ConsumoConDetall
     
     // Combinamos la información para cada consumo
     const consumosDetallados = consumosHoy.map((consumo: Consumo) => {
-      const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
-      const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
+      const empleado: Empleado | undefined = empleadosData.find((e: Empleado) => e.Id_Empleado === consumo.ID_Empleado);
+      const comida: Comida | undefined = comidasData.find((c: Comida) => c.ID_Comida === consumo.ID_Comida);
       
       return {
         ...consumo,
@@ -547,8 +718,8 @@ export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> =
 
     // Combinamos la información
     const consumosDetallados = consumosData.map((consumo: Consumo) => {
-      const empleado = empleadosData.find(e => e.Id_Empleado === consumo.ID_Empleado);
-      const comida = comidasData.find(c => c.ID_Comida === consumo.ID_Comida);
+      const empleado: Empleado | undefined = empleadosData.find((e: Empleado) => e.Id_Empleado === consumo.ID_Empleado);
+      const comida: Comida | undefined = comidasData.find((c: Comida) => c.ID_Comida === consumo.ID_Comida);
       
       return {
         ...consumo,
@@ -560,7 +731,8 @@ export const fetchConsumosDetallados = async (): Promise<ConsumoConDetalles[]> =
     });
 
     // Ordenamos por fecha descendente (los más recientes primero)
-    return consumosDetallados.sort((a, b) => 
+    return consumosDetallados.sort(
+      (a: ConsumoConDetalles, b: ConsumoConDetalles) =>
       new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
   } catch (error) {
@@ -580,12 +752,42 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
     
     // Adaptamos la respuesta a nuestro tipo ConsumoConDetalles
     // La estructura puede variar dependiendo de cómo esté configurada la API
-    const consumosDetallados = response.data.map(item => ({
-      Id_Consumo: item.Id_Consumo || item.ID_Consumo,
+    interface ConsumoEmpleadoAPI {
+      Id_Consumo?: number;
+      ID_Consumo?: number;
+      ID_Comida: number;
+      ID_Empleado: number;
+      Fecha: string;
+      Precio?: number | string;
+      Nombre_Empleado?: string;
+      NombreEmpleado?: string;
+      Nombre?: string;
+      Departamento?: string;
+      Nombre_Comida?: string;
+      NombreComida?: string;
+      Tipo_Comida?: string;
+      TipoComida?: string;
+      Tipo?: string;
+    }
+
+    interface ConsumoConDetalles {
+      Id_Consumo: number;
+      ID_Comida: number;
+      ID_Empleado: number;
+      Fecha: string;
+      Precio: number | string;
+      nombreEmpleado?: string;
+      departamentoEmpleado?: string;
+      nombreComida?: string;
+      tipoComida?: string;
+    }
+
+    const consumosDetallados: ConsumoConDetalles[] = (response.data as ConsumoEmpleadoAPI[]).map((item: ConsumoEmpleadoAPI): ConsumoConDetalles => ({
+      Id_Consumo: (typeof item.Id_Consumo === "number" ? item.Id_Consumo : (typeof item.ID_Consumo === "number" ? item.ID_Consumo : 0)),
       ID_Comida: item.ID_Comida,
       ID_Empleado: item.ID_Empleado,
       Fecha: item.Fecha,
-      Precio: item.Precio || "0",
+      Precio: typeof item.Precio === "undefined" ? "0" : String(item.Precio ?? "0"),
       nombreEmpleado: item.Nombre_Empleado || item.NombreEmpleado || item.Nombre,
       departamentoEmpleado: item.Departamento,
       nombreComida: item.Nombre_Comida || item.NombreComida,
@@ -596,8 +798,14 @@ export const fetchConsumosConEmpleados = async (): Promise<ConsumoConDetalles[]>
     console.log("Consumos detallados después del mapeo:", consumosDetallados[0]);
     
     // Ordenamos por fecha descendente
-    return consumosDetallados.sort((a, b) => 
-      new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
+    // Convertimos Precio a string para cumplir con el tipo ConsumoConDetalles
+    const consumosDetalladosConPrecioString = consumosDetallados.map((c) => ({
+      ...c,
+      Precio: String(c.Precio ?? "0"),
+    }));
+
+    return consumosDetalladosConPrecioString.sort(
+      (a, b) => new Date(b.Fecha).getTime() - new Date(a.Fecha).getTime()
     );
   } catch (error) {
     console.error("Error obteniendo consumos con empleados:", error);

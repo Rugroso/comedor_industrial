@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Clock} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Layout from "@/components/layout"
 import { 
@@ -14,6 +14,7 @@ import {
 import { Empleado, Comida, ConsumoDia } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 
+
 export default function Visualizacion() {
   const [currentDate, setCurrentDate] = useState("")
   const [consumosDelDia, setConsumosDelDia] = useState<ConsumoDia[]>([])
@@ -22,9 +23,25 @@ export default function Visualizacion() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentTime, setCurrentTime] = useState("")
   const itemsPerPage = 5 // Cambiado a 5 elementos por página
   
   const { toast } = useToast()
+
+    useEffect(() => {
+      const updateTime = () => {
+        const now = new Date()
+        const hours = now.getHours().toString().padStart(2, "0")
+        const minutes = now.getMinutes().toString().padStart(2, "0")
+        const seconds = now.getSeconds().toString().padStart(2, "0")
+        const ampm = now.getHours() >= 12 ? "PM" : "AM"
+        setCurrentTime(`${hours}:${minutes}:${seconds} ${ampm}`)
+      }
+      
+      updateTime()
+      const interval = setInterval(updateTime, 1000)
+      return () => clearInterval(interval)
+    }, [])
 
   useEffect(() => {
     const now = new Date()
@@ -35,10 +52,9 @@ export default function Visualizacion() {
     
     cargarDatos()
     
-    // Recargar datos cada 5 minutos
     const interval = setInterval(() => {
       cargarDatos()
-    }, 300000) // 5 minutos
+    }, 10000) // 10 segundos
     
     return () => clearInterval(interval)
   }, [])
@@ -166,7 +182,14 @@ export default function Visualizacion() {
           <div className="flex items-center gap-2 text-[#49454f]">
             <Calendar className="h-5 w-5" />
             <span>Fecha: {currentDate}</span>
+            <div className="flex items-center gap-2 text-[#49454f] ml-4">
+              <Clock className="h-5 w-5" />
+              <span>Hora actual: {currentTime}</span>
+            </div>
           </div>
+            <div className="flex items-center gap-2 text-[#49454f] mt-2">
+              <span className="text-sm">Actualización automática cada 10 segundos</span>
+            </div>
         </div>
         
         {loading ? (

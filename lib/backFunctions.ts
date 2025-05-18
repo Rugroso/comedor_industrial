@@ -60,20 +60,24 @@ export const fetchConsumos = async () => {
 }
 
 //REGISTRAR EMPLEADO
-export const registrarEmpleado = async (nombre: string, departamento: string, imagen: string) => {
+// declara un tipo para los parámetros
+interface RegistrarEmpleadoParams {
+  nombre: string;
+  departamento: string;
+  imagenBase64?: string;
+}
+
+export const registrarEmpleado = async ({
+  nombre,
+  departamento,
+  imagenBase64,
+}: RegistrarEmpleadoParams) => {
+  console.log("Registrando empleado:", nombre, departamento, imagenBase64);
   try {
     const response = await axios.post(
       `${API_BASE_URL}/empleados`,
-      {
-        Nombre: nombre,
-        Departamento: departamento,
-        Imagen: imagen
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+      { Nombre: nombre, Departamento: departamento, imagenBase64 },
+      { headers: { "Content-Type": "application/json" } }
     );
     console.log("Empleado registrado:", response.data);
     return response.data;
@@ -82,17 +86,16 @@ export const registrarEmpleado = async (nombre: string, departamento: string, im
     if (error.response) {
       throw {
         message: `Error del servidor: ${error.response.status} - ${JSON.stringify(error.response.data)}`,
-        originalError: error
+        originalError: error,
       };
     } else {
       throw {
         message: "Error al registrar empleado",
-        originalError: error
+        originalError: error,
       };
     }
   }
-}
-
+};
 
 //ELIMINAR EMPLEADO
 export const eliminarEmpleado = async (id: string) => {
@@ -119,44 +122,69 @@ export const eliminarEmpleado = async (id: string) => {
 }
 
 //ACTUALIZAR EMPLEADO
-export const actualizarEmpleado = async (
-  id: string,
-  nombre: string,
-  departamento: string,
-  imagen?: string
-) => {
+export const actualizarEmpleado = async ({
+  id,
+  nombre,
+  departamento,
+  imagenUrl,
+  imagenBase64,
+  tipoImagen = "image/jpeg",
+}: {
+  id: string;
+  nombre: string;
+  departamento: string;
+  imagenUrl?: string;
+  imagenBase64?: string;
+  tipoImagen?: string;
+}) => {
+  console.log(
+    "Actualizando empleado:",
+    id,
+    nombre,
+    departamento,
+    imagenBase64 ? "[base64]" : imagenUrl ? imagenUrl : "[sin imagen]"
+  );
+
   try {
-    const empleadoActualizado: any = {
-      "Nombre": nombre,
-      "Departamento": departamento,
-      "Imagen": imagen || "default.jpg"
+    // Construyo el body según lo que venga
+    const payload: any = {
+      Nombre: nombre,
+      Departamento: departamento,
+    };
+
+    if (imagenBase64) {
+      // si me mandan base64, lo sube el backend
+      payload.imagenBase64 = imagenBase64;
+      payload.tipoImagen = tipoImagen;
+    } else if (imagenUrl) {
+      // si sólo quieren mantener o cambiar URL
+      payload.Imagen = imagenUrl;
     }
 
     const response = await axios.put(
       `${API_BASE_URL}/empleados/${id}`,
-      empleadoActualizado
-    )
-    console.log("Empleado actualizado:", response.data)
-    return response.data
+      payload,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    console.log("Empleado actualizado:", response.data);
+    return response.data;
   } catch (error: any) {
     if (error.response) {
-      // El servidor respondió con un código de estado fuera del rango 2xx
-      console.error("Error de respuesta del servidor:")
-      console.error("Status:", error.response.status)
-      console.error("Data:", error.response.data)
-      console.error("Headers:", error.response.headers)
+      console.error("Error de respuesta del servidor:", {
+        status: error.response.status,
+        data: error.response.data,
+      });
     } else if (error.request) {
-      // La solicitud fue hecha pero no hubo respuesta
-      console.error("No se recibió respuesta del servidor:")
-      console.error("Request:", error.request)
+      console.error("No se recibió respuesta:", error.request);
     } else {
-      // Ocurrió un error al configurar la solicitud
-      console.error("Error al configurar la solicitud:", error.message)
+      console.error("Error configurando la solicitud:", error.message);
     }
-    console.error("Stack trace:", error.stack)
-    throw error
+    throw error;
   }
-}
+};
 
 
 //CONSUMO EMPLEADOS

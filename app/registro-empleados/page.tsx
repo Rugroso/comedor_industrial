@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 export default function RegistroEmpleados() {
   const [nombre, setNombre] = useState("")
   const [departamento, setDepartamento] = useState("")
-  const [imagen, setImagen] = useState("") 
+  const [imagen, setImagen] = useState<string>("default.jpg");
 
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [loading, setLoading] = useState(true)
@@ -75,18 +75,18 @@ const triggerFileInput = () => {
     try {
       let response;
       if (editMode && empleadoEditando) {
-        response = await actualizarEmpleado(empleadoEditando, nombre, departamento, imagen);
-        toast({
-          title: "Éxito",
-          description: "Empleado actualizado correctamente",
+        await actualizarEmpleado({
+          id: empleadoEditando,
+          nombre,
+          departamento,
+          imagenBase64: imagen.startsWith("data:image/") ? imagen : undefined,
+          imagenUrl: !imagen.startsWith("data:image/") ? imagen : undefined
         });
-        setEditMode(false);
-        setEmpleadoEditando(null);
       } else {
-        response = await registrarEmpleado(nombre, departamento, imagen);
-        toast({
-          title: "Éxito",
-          description: "Empleado registrado correctamente",
+        await registrarEmpleado({
+          nombre,
+          departamento,
+          imagenBase64: imagen.startsWith("data:image/") ? imagen : undefined
         });
       }
       

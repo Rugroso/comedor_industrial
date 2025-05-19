@@ -139,7 +139,7 @@ export default function RegistroConsumo() {
               </label>
               <Input 
                 id="employeeNumber" 
-                placeholder="Ej. M041930" 
+                placeholder="Ej. 041930" 
                 className="border-[#cac4d0] bg-white"
                 value={empleadoId}
                 onChange={(e) => setEmpleadoId(e.target.value)}

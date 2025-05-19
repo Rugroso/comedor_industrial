@@ -204,7 +204,7 @@ export const fetchConsumosEmpleados = async () => {
 // Función para obtener las comidas disponibles según la hora
 export const obtenerComidasPorHora = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/comidashora`, {
+    const response = await fetch(`${API_BASE_URL}/comidas/hora`, {
       method: 'GET',
     });
     

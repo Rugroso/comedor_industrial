@@ -716,12 +716,10 @@ export const fetchConsumosDelDiaConDetalles = async (): Promise<ConsumoConDetall
 export const determinarTipoComida = () => {
   const hora = new Date().getHours();
   
-  if (hora >= 6 && hora < 11) {
+  if (hora >= 0 && hora < 11) {
     return "desayuno";
-  } else if (hora >= 12 && hora < 16) {
+  } else if (hora >= 12 && hora < 23) {
     return "comida";
-  } else if (hora >= 18 && hora < 21) {
-    return "cena";
   } else {
     return "otro";
   }
